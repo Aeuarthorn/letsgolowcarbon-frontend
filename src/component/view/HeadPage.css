@@ -1,0 +1,19 @@
+.head-page {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #fff;
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* แสดง header */
+.head-page.show {
+  transform: translateY(0%);
+}
+
+/* ซ่อน header (เลื่อนขึ้นไปข้างบน) */
+.head-page.hide {
+  transform: translateY(-100%);
+}

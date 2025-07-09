@@ -1,0 +1,37 @@
+/* ในไฟล์ CSS ของคุณ */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai&family=Prompt&display=swap');
+
+body {
+    font-family: 'Kanit', sans-serif;
+    /* Example for Kanit font */
+}
+
+
+#root {
+    height: 100%;
+}
+
+.my-heading {
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    /* Example for IBM Plex Sans Thai */
+    font-weight: bold;
+}
+
+/* เพิ่มใน App.css หรือ global.css */
+.header-transition {
+    transition: all 1s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+}
+
+.header-hidden {
+    opacity: 0;
+    transform: translateY(-100%);
+}
+
+.fixed-header {
+    height: 80px;
+}

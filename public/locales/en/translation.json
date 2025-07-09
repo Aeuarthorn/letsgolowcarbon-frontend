@@ -1,0 +1,181 @@
+{
+  "home": "Home",
+  "routes": "Route Suggestions",
+  "format": "Trip Format",
+  "about": "About Us",
+  "contact": "Contact",
+  "language": "Language",
+  "login": "Log In",
+  "logout": "Log Out",
+  "signup": "Sign Up",
+  "admin": "Admin",
+  "user": "User",
+  "guest": "Guest",
+  "dashboard": "Page Add Data",
+  "current_role": "Current Role",
+  "head_tourist_routes": "Tourist Routes",
+  "route_mueang": [
+    {
+      "id": 1,
+      "name": "Route 1 - Mueang District",
+      "image": "/img-web/route1.jpg"
+    },
+    {
+      "id": 2,
+      "name": "Route 2 - Mueang District",
+      "image": "/img-web/route2.jpg"
+    },
+    {
+      "id": 3,
+      "name": "Route 3 - Mueang District",
+      "image": "/img-web/route3.jpg"
+    }
+  ],
+  "route_phu_pha_man": [
+    {
+      "id": 1,
+      "name": "Route 1 - Phu Pha Man District",
+      "image": "/img-web/route1.jpg"
+    },
+    {
+      "id": 2,
+      "name": "Route 2 - Phu Pha Man District",
+      "image": "/img-web/route2.jpg"
+    }
+  ],
+  "route_ubolrat": [
+    {
+      "id": 1,
+      "name": "Route 1 - Ubolrat District",
+      "image": "/img-web/route1.jpg"
+    },
+    {
+      "id": 2,
+      "name": "Route 2 - Ubolrat District",
+      "image": "/img-web/route2.jpg"
+    }
+  ],
+  "route_phu_wiang": [
+    {
+      "id": 1,
+      "name": "Route 1 - Phu Waing District",
+      "image": "/img-web/route1.jpg"
+    }
+  ],
+  "route_nam_phong": [
+    {
+      "id": 1,
+      "name": "Route 1 - NamPhong District",
+      "image": "/img-web/route1.jpg"
+    },
+    {
+      "id": 2,
+      "name": "Route 2 - NamPhong District",
+      "image": "/img-web/route2.jpg"
+    }
+  ],
+  "route_si_chomphu": [
+    {
+      "id": 1,
+      "name": "Route 1 - Si Chom Phu District",
+      "image": "/img-web/route1.jpg"
+    },
+    {
+      "id": 2,
+      "name": "Route 2 - Si Chom Phu  District",
+      "image": "/img-web/route2.jpg"
+    }
+  ],
+  "roles": [
+    {
+      "id": "guest",
+      "name_th": "บุคคลทั่วไป",
+      "name_en": "Guest"
+    },
+    {
+      "id": "user",
+      "name_th": "ผู้ใช้งาน",
+      "name_en": "User"
+    },
+    {
+      "id": "admin",
+      "name_th": "ผู้ดูแลระบบ",
+      "name_en": "Admin"
+    }
+  ],
+  "districts": [
+    {
+      "id": "mueang",
+      "name_th": "อำเภอเมือง",
+      "name_en": "Muang District",
+      "icon": "district-1.png"
+    },
+    {
+      "id": "phu_pha_man",
+      "name_th": "อำเภอภูผาม่าน",
+      "name_en": "Phu Pha Man",
+      "icon": "district-2.png"
+    },
+    {
+      "id": "ubonrat",
+      "name_th": "อำเภออุบลรัตน์",
+      "name_en": "Ubolrat",
+      "icon": "district-3.png"
+    },
+    {
+      "id": "phu_wiang",
+      "name_th": "อำเภอภูเวียง",
+      "name_en": "Phu Wiang",
+      "icon": "district-4.png"
+    },
+    {
+      "id": "nam_phong",
+      "name_th": "อำเภอน้ำพอง",
+      "name_en": "Nam Phong",
+      "icon": "district-5.png"
+    },
+    {
+      "id": "si_chomphu",
+      "name_th": "อำเภอสีชมพู",
+      "name_en": "Si Chomphu",
+      "icon": "district-6.png"
+    }
+  ],
+  "formats": [
+    {
+      "id": "1day",
+      "name_th": "1 วัน",
+      "name_en": "1 Day"
+    },
+    {
+      "id": "2d1n",
+      "name_th": "2 วัน 1 คืน",
+      "name_en": "2 Days 1 Night"
+    },
+    {
+      "id": "3d2n",
+      "name_th": "3 วัน 2 คืน",
+      "name_en": "3 Days 2 Nights"
+    }
+  ],
+  "menu": {
+    "privacy_policy": "Privacy Policy",
+    "terms": "Terms and Conditions",
+    "contacts": "Contact",
+    "abouts": "About Us"
+  },
+  "abouted": {
+    "title": "About Us",
+    "what_is_lglc_title": "What is Let’s Go Low Carbon ?",
+    "what_is_low_carbon_society_title": "What is Low Carbon Society ?",
+    "what_is_carbon_footprint_title": "What is the Carbon footprint ?",
+    "what_is_low_carbon_title": "What is Low Carbon ?",
+    "origin_title": "The Origin of this Ideas",
+    "what_is_lglc": "<p>Let's Go Low Carbon is a website that collects tourist attractions, accommodations, restaurants in Khon Kaen Province, with 6 districts including Mueang District, Phu Pha Man District. Ubonratana District, Phu Wiang District,Nam Phong District,Si Chomphu District, to design and create a route for tourism activities under net zero carbon. Within the website, the amount of carbon dioxide emissions of each tourist attraction is calculated. So that you can travel with confidence that this trip will be able to reduce carbon dioxide emissions and cause minimal disruption to the environment.</p>",
+    "what_is_low_carbon_society": "<p>low carbon society It is a society where the majority of people Society has turned to work together to reduce carbon dioxide emissions in all forms or activities. Caused by normal living, especially reducing the amount of carbon dioxide released from the production process of factories or industries. In order to live together in a society with a good quality of life. A low-carbon society must make people in society aware of the quality of life that comes from living in a low-carbon environment. People in society are attached to the choice of technology or the development of technology that is environmentally friendly. And the important thing is It must be a society with city planning that is consistent with a balanced ecosystem.</p>",
+    "what_is_carbon_footprint": "<p>Carbon Footprint is the amount of greenhouse gas emissions and removals emitted by a product or service throughout its life cycle. or from the operating activities of the organization Measurement included in terms of tonnes (kilograms) of carbon dioxide equivalent.</p>",
+    "what_is_low_carbon": "<p>The concept of (Low Carbon Tourism) refers to tourism activities that aim to reduce carbon emissions. The starting point for low carbon tourism emerged as a global response to addressing climate change, with the tourism industry being a significant contributor to carbon emissions. If we consider the carbon footprint of travel, even just stepping out of our homes for a vacation results in carbon emissions. Therefore, as the tourism industry is a major source of carbon emissions, various organizations and agencies collaborate to think about how to (travel in a way that minimizes carbon emissions.) This has led to the concept of Low Carbon Tourism, which aims to promote tourism in a manner that reduces carbon emissions and minimizes environmental impact as much as possible.</p>",
+    "origin": "<p>The Let's Go Low Carbon website was founded in 2023 by a group of 4th year Tourism Industry Management students. Faculty of Business Administration and Accounting Khon Kaen University This is because the organizing team recognizes the importance and is aware of the problems arising from tourism activities in tourist destinations that all affect the release of carbon dioxide into the atmosphere. which contributes to accelerating global warming in the future Therefore, there was an interest in studying tourism routes in Mueang District. Phu Pha Man District and Ubonrat District Khon Kaen Province How should you travel and do tourism activities to create the least amount of carbon emissions? Which aims to study and promote new tourism routes under low-carbon tourism. and to present low-carbon tourism routes For this reason, a project was born under the name ‟Creating low-carbon tourism routes Khon Kaen Province</p>",
+    "website_origin": "This website is part of the course BS944011 Tourism Project Management, supervised by Asst. Prof. Dr. Methawinn Pholyothi."
+  }
+}
