@@ -19,6 +19,7 @@ function LoginPage({ onLoginSuccess }) {
   const [form, setForm] = useState({ email: "", password: "" });
 
   const handleLogin = async () => {
+    
     try {
       const res = await fetch("http://localhost:8080/login", {
         method: "POST",
@@ -46,6 +47,7 @@ function LoginPage({ onLoginSuccess }) {
         } else {
           navigate("/");
         }
+        window.location.reload();
       } else {
         alert("เข้าสู่ระบบไม่สำเร็จ");
       }

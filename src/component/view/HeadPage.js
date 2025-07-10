@@ -492,7 +492,7 @@ export default function HeadPage({
                       <Button
                         color="inherit"
                         startIcon={<AccountCircleIcon />}
-                        onClick={handleLoginMenuOpen}
+                        onClick={role === "guest" ? handleLoginMenuOpen : handleUserMenuOpen}
                         sx={{
                           borderRadius: 2,
                           textTransform: "none",
@@ -501,7 +501,9 @@ export default function HeadPage({
                         }}
                         endIcon={<KeyboardArrowDownIcon fontSize="small" />}
                       >
-                        {t(role)}
+                        {typeof role === "string" && ["guest", "admin", "user"].includes(role)
+                          ? t(role)
+                          : t("guest")}
                       </Button>
                       <Menu
                         anchorEl={loginMenuAnchor}

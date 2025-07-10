@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import MainPage from "./component/view/MainPage";
 import DistrictPage from "./component/view/DistrictPage";
 import Contact from "./component/view/Contact";
@@ -35,12 +35,14 @@ const defaultTheme = createTheme({
 });
 
 export default function App() {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith("/admin");
   const [showHeader, setShowHeader] = useState(true);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const [role, setRole] = useState("guest"); // กำหนด default เป็น guest เลย
   const [loadingRole, setLoadingRole] = useState(true);
 
-  
+
   useEffect(() => {
     // ฟังก์ชันดึง role user
     const fetchUserRole = async () => {
@@ -110,21 +112,21 @@ export default function App() {
   return (
     <>
       {/* HEADER */}
-      <div
-        className={`transition-transform duration-300 fixed top-0 left-0 right-0 z-50 ${
-          showHeader ? "translate-y-0" : "-translate-y-full"
-        }`}
-      >
-        <HeadPage
-          screenWidth={screenWidth}
-          defaultTheme={defaultTheme}
-          roles={role}
-          isAuthenticated={role !== "guest"}
-        />
-      </div>
-
+      {!isAdminPage && (
+        <div
+          className={`transition-transform duration-300 fixed top-0 left-0 right-0 z-50 ${showHeader ? "translate-y-0" : "-translate-y-full"
+            }`}
+        >
+          <HeadPage
+            screenWidth={screenWidth}
+            defaultTheme={defaultTheme}
+            roles={role}
+            isAuthenticated={role !== "guest"}
+          />
+        </div>
+      )}
       {/* BODY CONTENT */}
-      <div style={{ paddingTop: "60px" }}>
+      <div style={{  paddingTop: !isAdminPage ? "60px" :"0px" }}>
         <Routes>
           <Route
             path="/"
@@ -226,7 +228,7 @@ export default function App() {
             }
           /> */}
           <Route
-            path="/admin"
+            path="/admin/*"
             element={
               <MainAdmin
                 screenWidth={screenWidth}
@@ -237,7 +239,7 @@ export default function App() {
             }
           />
           <Route
-            path="/user"
+            path="/user/*"
             element={
               <MainUser
                 screenWidth={screenWidth}

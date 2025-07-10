@@ -18,11 +18,11 @@ const defaultTheme = createTheme({
 });
 
 const icon = [
-    { icon: "maptravel-Photoroom.png", label: 'สถานที่ท่องเที่ยว' },
-    { icon: "home-Photoroom.png", label: 'ที่พัก' },
-    { icon: "food-Photoroom.png", label: 'ร้านอาหาร' },
-    { icon: "gift-Photoroom.png", label: 'ร้านของที่ระลึก' },
-    { icon: "market-Photoroom.png", label: 'ผลิตภัณฑ์ชุมชน' },
+    { icon: "maptravel-Photoroom.png", label: 'สถานที่ท่องเที่ยว', path: 'travels' },
+    { icon: "home-Photoroom.png", label: 'ที่พัก', path: 'home-stay' },
+    { icon: "food-Photoroom.png", label: 'ร้านอาหาร', path: 'food' },
+    { icon: "gift-Photoroom.png", label: 'ร้านของที่ระลึก', path: 'gift' },
+    { icon: "market-Photoroom.png", label: 'ผลิตภัณฑ์ชุมชน', path: 'market' },
 ];
 
 function MainRouteTraval() {
@@ -64,7 +64,7 @@ function MainRouteTraval() {
                         >
                             <Box
                                 component={Link}
-                                to={`/${item.label}`} // ใช้ชื่อ label เป็น path เช่น /อาหาร
+                                to={`/${item.path}`} // ใช้ชื่อ label เป็น path เช่น /อาหาร
                                 sx={{
                                     textDecoration: 'none',
                                     display: 'flex',
