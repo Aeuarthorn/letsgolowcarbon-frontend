@@ -20,6 +20,8 @@ import LoginPage from "./LoginPage";
 import SignUpPage from "./SignUpPage";
 import MainAdmin from "./component/admin/MainAdmin";
 import MainUser from "./component/user/MainUser";
+import 'leaflet/dist/leaflet.css';
+
 const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 const defaultTheme = createTheme({

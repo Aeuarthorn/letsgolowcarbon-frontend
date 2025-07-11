@@ -74,6 +74,13 @@ export default function HeadPage({
   // );
 
   const [language, setLanguage] = useState(i18n.language);
+  const roleMap = {
+    "1": "admin",
+    "2": "admin",
+    "3": "user",
+    "37": "guest", // ตัวอย่าง: บาง role อ่านได้ แต่เขียน/ลบไม่ได้
+    // เพิ่มตามจริงจาก decoded.role ที่คุณมี
+  };
   const [role, setRole] = useState("guest");
 
   useEffect(() => {
@@ -96,10 +103,16 @@ export default function HeadPage({
       try {
         const decoded = jwtDecode(token);
         console.log("decoded.role", decoded.role);
-        setRole(decoded.role);
+
+        const roleIds = Object.keys(decoded.role || {});
+        // เลือก role ID แรก หรือใช้ logic ที่เหมาะสมที่สุด
+        const firstRoleId = roleIds[0];
+        const roleName = roleMap[firstRoleId] || "guest";
+
+        setRole(roleName); // ✅ ตั้งค่า role ที่ใช้ใน JSX ได้เลย
       } catch (err) {
         console.error("JWT decode failed", err);
-        setRole("");
+        setRole("guest");
       }
     }
 

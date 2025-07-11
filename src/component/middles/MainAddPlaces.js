@@ -93,9 +93,9 @@ function MainAddPlaces() {
             sx={{
                 p: 3,
                 maxWidth: "1000px",
-                bgcolor: "#239A2B",
+                bgcolor: "#e6f4ea",
                 borderRadius: 4,
-                color: "white",
+                color: "#33691e",
                 mx: "auto",
             }}
             component="form"
@@ -122,11 +122,11 @@ function MainAddPlaces() {
                         onChange={handleChange("name")}
                         InputProps={{
                             style: {
-                                color: "#f1f8e9",
-                                backgroundColor: "#1b5e20",
+                                color: "#33691e",
+                                backgroundColor: "#dcedc8",
                             },
                         }}
-                        InputLabelProps={{ style: { color: "#c8e6c9" } }}
+                        InputLabelProps={{ style: { color: "#558b2f" } }}
                     />
                 </Grid>
 
@@ -139,11 +139,11 @@ function MainAddPlaces() {
                         onChange={handleChange("quantity")}
                         InputProps={{
                             style: {
-                                color: "#f1f8e9",
-                                backgroundColor: "#1b5e20",
+                                color: "#33691e",
+                                backgroundColor: "#dcedc8",
                             },
                         }}
-                        InputLabelProps={{ style: { color: "#c8e6c9" } }}
+                        InputLabelProps={{ style: { color: "#558b2f" } }}
                     />
                 </Grid>
 
@@ -152,7 +152,7 @@ function MainAddPlaces() {
                         sx={{
                             display: "flex",
                             alignItems: "center",
-                            bgcolor: "rgba(255, 255, 255, 0.1)", // กรอบเบลอจางๆ
+                            bgcolor: "#c8e6c9",
                             borderRadius: 1,
                             p: 1.5,
                         }}
@@ -164,16 +164,16 @@ function MainAddPlaces() {
                                     onChange={handleSwitchChange}
                                     sx={{
                                         "& .MuiSwitch-switchBase.Mui-checked": {
-                                            color: "#ffeb3b", // สีเหลืองเมื่อเปิด
+                                            color: "#66bb6a",
                                         },
                                         "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                                            backgroundColor: "#fdd835", // แทร็คสีเหลือง
+                                            backgroundColor: "#81c784",
                                         },
                                     }}
                                 />
                             }
                             label={
-                                <Typography sx={{ color: "#fff", fontWeight: "bold" }}>
+                                <Typography sx={{ color: "#33691e", fontWeight: "bold" }}>
                                     ใช้สำหรับภาษา: {form.usage}
                                 </Typography>
                             }
@@ -188,7 +188,7 @@ function MainAddPlaces() {
                         <input type="file" hidden onChange={handleChange("bannerFile")} />
                     </Button>
                     {form.bannerFile && (
-                        <Typography variant="body2" sx={{ color: "#f1f8e9" }}>
+                        <Typography variant="body2" sx={{ color: "#33691e", mt: 1 }}>
                             {form.bannerFile.name}
                         </Typography>
                     )}
@@ -200,7 +200,7 @@ function MainAddPlaces() {
                         <input type="file" hidden onChange={handleChange("detailFile")} />
                     </Button>
                     {form.detailFile && (
-                        <Typography variant="body2" sx={{ color: "#f1f8e9" }}>
+                        <Typography variant="body2" sx={{ color: "#33691e", mt: 1 }}>
                             {form.detailFile.name}
                         </Typography>
                     )}
@@ -224,15 +224,20 @@ function MainAddPlaces() {
                         onChange={handleChange("history")}
                         InputProps={{
                             style: {
-                                color: "#f1f8e9",
-                                backgroundColor: "#1b5e20",
+                                color: "#33691e",
+                                backgroundColor: "#dcedc8",
                             },
                         }}
-                        InputLabelProps={{ style: { color: "#c8e6c9" } }}
+                        InputLabelProps={{ style: { color: "#558b2f" } }}
                     />
                 </Grid>
 
-                {[["กิจกรรม", "activity"], ["ค่าใช้จ่าย", "expense"], ["อาหารการ", "food"], ["ฤดูกาลท่องเที่ยว", "tourismSeason"]].map(([label, key]) => (
+                {[
+                    ["กิจกรรม", "activity"],
+                    ["ค่าใช้จ่าย", "expense"],
+                    ["อาหารการ", "food"],
+                    ["ฤดูกาลท่องเที่ยว", "tourismSeason"],
+                ].map(([label, key]) => (
                     <Grid item xs={12} sm={6} key={key}>
                         <TextField
                             fullWidth
@@ -242,16 +247,16 @@ function MainAddPlaces() {
                             onChange={handleChange(key)}
                             InputProps={{
                                 style: {
-                                    color: "#f1f8e9",
-                                    backgroundColor: "#1b5e20",
+                                    color: "#33691e",
+                                    backgroundColor: "#dcedc8",
                                 },
                             }}
-                            InputLabelProps={{ style: { color: "#c8e6c9" } }}
+                            InputLabelProps={{ style: { color: "#558b2f" } }}
                         />
                     </Grid>
                 ))}
 
-                {/* สิ่งแวดล้อม */}
+                {/* ความยั่งยืน */}
                 <Grid item xs={12}>
                     <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
                         🌱 ความยั่งยืน & สิ่งแวดล้อม
@@ -276,16 +281,16 @@ function MainAddPlaces() {
                             onChange={handleChange(key)}
                             InputProps={{
                                 style: {
-                                    color: "#f1f8e9",
-                                    backgroundColor: "#1b5e20",
+                                    color: "#33691e",
+                                    backgroundColor: "#dcedc8",
                                 },
                             }}
-                            InputLabelProps={{ style: { color: "#c8e6c9" } }}
+                            InputLabelProps={{ style: { color: "#558b2f" } }}
                         />
                     </Grid>
                 ))}
 
-                {/* การติดต่อ */}
+                {/* ติดต่อ */}
                 <Grid item xs={12}>
                     <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
                         📞 การติดต่อและแผนที่
@@ -305,11 +310,11 @@ function MainAddPlaces() {
                             onChange={handleChange(key)}
                             InputProps={{
                                 style: {
-                                    color: "#f1f8e9",
-                                    backgroundColor: "#1b5e20",
+                                    color: "#33691e",
+                                    backgroundColor: "#dcedc8",
                                 },
                             }}
-                            InputLabelProps={{ style: { color: "#c8e6c9" } }}
+                            InputLabelProps={{ style: { color: "#558b2f" } }}
                         />
                     </Grid>
                 ))}
@@ -326,11 +331,11 @@ function MainAddPlaces() {
                         placeholder="เช่น 16.76031995300121, 103.33303807244201"
                         InputProps={{
                             style: {
-                                color: "#f1f8e9",
-                                backgroundColor: "#1b5e20",
+                                color: "#33691e",
+                                backgroundColor: "#dcedc8",
                             },
                         }}
-                        InputLabelProps={{ style: { color: "#c8e6c9" } }}
+                        InputLabelProps={{ style: { color: "#558b2f" } }}
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -342,11 +347,11 @@ function MainAddPlaces() {
                         onChange={handleChange("remark")}
                         InputProps={{
                             style: {
-                                color: "#f1f8e9",
-                                backgroundColor: "#1b5e20",
+                                color: "#33691e",
+                                backgroundColor: "#dcedc8",
                             },
                         }}
-                        InputLabelProps={{ style: { color: "#c8e6c9" } }}
+                        InputLabelProps={{ style: { color: "#558b2f" } }}
                     />
                 </Grid>
 
@@ -361,7 +366,6 @@ function MainAddPlaces() {
                 </Grid>
             </Grid>
         </Box>
-
 
     );
 }

@@ -52,7 +52,7 @@ function MainPage({ screenWidth, defaultTheme }) {
         setIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     };
 
-    console.log("prefix", prefix);
+    // console.log("prefix", prefix);
 
     const images = language === 'th'
         ? [

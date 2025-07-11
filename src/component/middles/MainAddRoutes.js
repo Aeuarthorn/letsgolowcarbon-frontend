@@ -165,7 +165,18 @@ function MainAddRoutes() {
 
     return (
         <Box sx={{ p: 4, backgroundColor: '#f0fdf4', minHeight: '100vh' }}>
-            <Card sx={{ maxWidth: 800, mx: 'auto', borderRadius: 4, boxShadow: 3 }}>
+            <Card
+                sx={{
+                    p: 4,
+                    maxWidth: 1000,
+                    mx: "auto",
+                    mt: 4,
+                    background: "#e6f4ea", // เขียวอ่อนสบายตา
+                    color: "#2e7d32", // เขียวเข้มสำหรับตัวหนังสือ
+                    borderRadius: 3,
+                    boxShadow: "0 4px 12px rgba(46, 125, 50, 0.3)", // เงานุ่ม ๆ สีเขียว
+                }}
+            >
                 <CardContent>
                     <Typography variant="h5" fontWeight="bold" color="green" gutterBottom>
                         🛣️ เพิ่มเส้นทาง (Add Route)

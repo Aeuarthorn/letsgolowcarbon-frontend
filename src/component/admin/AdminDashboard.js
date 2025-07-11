@@ -18,7 +18,7 @@ function AdminDashboard() {
     const [loading, setLoading] = useState(false)
 
     const LoadData = async () => {
-        
+
     }
 
     useEffect(() => {
@@ -28,7 +28,7 @@ function AdminDashboard() {
 
 
     return (
-        <Box>
+        <Box sx={{ p: 4,  minHeight: '100vh' }}>
             <Typography variant="h4" color="green" gutterBottom>
                 แดชบอร์ดผู้ดูแลระบบ
             </Typography>
