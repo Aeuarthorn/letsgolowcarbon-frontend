@@ -17,9 +17,10 @@ function LoginPage({ onLoginSuccess }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    
+    setLoading(true);
     try {
       const res = await fetch("http://localhost:8080/login", {
         method: "POST",
@@ -47,12 +48,15 @@ function LoginPage({ onLoginSuccess }) {
         } else {
           navigate("/");
         }
+        setLoading(false);
         window.location.reload();
       } else {
         alert("เข้าสู่ระบบไม่สำเร็จ");
+        setLoading(false);
       }
     } catch (err) {
       alert("เกิดข้อผิดพลาด");
+      setLoading(false);
     }
   };
 

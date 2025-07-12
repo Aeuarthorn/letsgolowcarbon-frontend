@@ -7,13 +7,13 @@ import HeadPage from "./component/view/HeadPage";
 import About from "./component/view/About";
 import debounce from "lodash.debounce";
 import { createTheme } from "@mui/material";
-import MainRouteMueangOne from "./component/view/routes/route_mueang/MainRouteMueangOne";
-import MainRouteMueangTwo from "./component/view/routes/route_mueang/MainRouteMueangTwo";
-import MainRouteMueangThree from "./component/view/routes/route_mueang/MainRouteMueangThree";
-import MainRoutePhuPhaManOne from "./component/view/routes/route_phu_pha_man/MainRoutePhuPhaManOne";
-import MainRoutePhuPhaManTwo from "./component/view/routes/route_phu_pha_man/MainRoutePhuPhaManTwo";
-import MainRouteUbolratOne from "./component/view/routes/route_ubolrat/MainRouteUbolratOne";
-import MainRouteUbolratTwo from "./component/view/routes/route_ubolrat/MainRouteUbolratTwo";
+// import MainRouteMueangOne from "./component/view/routes/route_mueang/MainRouteMueangOne";
+// import MainRouteMueangTwo from "./component/view/routes/route_mueang/MainRouteMueangTwo";
+// import MainRouteMueangThree from "./component/view/routes/route_mueang/MainRouteMueangThree";
+// import MainRoutePhuPhaManOne from "./component/view/routes/route_phu_pha_man/MainRoutePhuPhaManOne";
+// import MainRoutePhuPhaManTwo from "./component/view/routes/route_phu_pha_man/MainRoutePhuPhaManTwo";
+// import MainRouteUbolratOne from "./component/view/routes/route_ubolrat/MainRouteUbolratOne";
+// import MainRouteUbolratTwo from "./component/view/routes/route_ubolrat/MainRouteUbolratTwo";
 import MainRoutes from "./component/view/routes/MainRoutes";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import LoginPage from "./LoginPage";
@@ -21,6 +21,11 @@ import SignUpPage from "./SignUpPage";
 import MainAdmin from "./component/admin/MainAdmin";
 import MainUser from "./component/user/MainUser";
 import 'leaflet/dist/leaflet.css';
+import MainTravel from "./component/view/travels/MainTravel";
+import MainCommunityProducts from "./component/view/communityProducts/MainCommunityProducts";
+import MainSouvenirs from "./component/view/souvenirs/MainSouvenirs";
+import MainRestaurants from "./component/view/restaurants/MainRestaurants";
+import MainHomeStays from "./component/view/homestays/MainHomeStays";
 
 const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -172,6 +177,81 @@ export default function App() {
               <ProtectedRoute
                 element={
                   <About
+                    screenWidth={screenWidth}
+                    defaultTheme={defaultTheme}
+                  />
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          <Route
+            path="/travels"
+            element={
+              <ProtectedRoute
+                element={
+                  <MainTravel
+                    screenWidth={screenWidth}
+                    defaultTheme={defaultTheme}
+                  />
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          <Route
+            path="/home-stay"
+            element={
+              <ProtectedRoute
+                element={
+                  <MainHomeStays
+                    screenWidth={screenWidth}
+                    defaultTheme={defaultTheme}
+                  />
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          <Route
+            path="/food"
+            element={
+              <ProtectedRoute
+                element={
+                  <MainRestaurants
+                    screenWidth={screenWidth}
+                    defaultTheme={defaultTheme}
+                  />
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          <Route
+            path="/gift"
+            element={
+              <ProtectedRoute
+                element={
+                  <MainSouvenirs
+                    screenWidth={screenWidth}
+                    defaultTheme={defaultTheme}
+                  />
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          <Route
+            path="/market"
+            element={
+              <ProtectedRoute
+                element={
+                  <MainCommunityProducts
                     screenWidth={screenWidth}
                     defaultTheme={defaultTheme}
                   />
