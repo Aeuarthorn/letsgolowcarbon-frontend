@@ -172,7 +172,7 @@ function Nam_Phong_district({ screenWidth, defaultTheme, id }) {
                   >
                     <Card
                       component={RouterLink}
-                      to={`/route/nam_phong/${route.id}`}
+                      to={`/district/nam_phong/${route.id}`}
                       sx={{
                         borderRadius: 7,
                         maxWidth: '300px',

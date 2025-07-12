@@ -173,7 +173,7 @@ function Ubonrat_district({ screenWidth, defaultTheme, id }) {
                   >
                     <Card
                       component={RouterLink}
-                      to={`/route/ubolrat/${route.id}`}
+                      to={`/district/ubolrat/${route.id}`}
                       sx={{
                         borderRadius: 7,
                         maxWidth: '300px',

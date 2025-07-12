@@ -173,7 +173,7 @@ function Phu_Pha_Man_district({ screenWidth, defaultTheme, id }) {
                   >
                     <Card
                       component={RouterLink}
-                      to={`/route/phu_pha_man/${route.id}`}
+                      to={`/district/phu_pha_man/${route.id}`}
                       sx={{
                         borderRadius: 7,
                         maxWidth: '300px',

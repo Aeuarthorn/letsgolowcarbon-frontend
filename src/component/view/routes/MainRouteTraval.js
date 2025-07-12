@@ -64,7 +64,7 @@ function MainRouteTraval() {
                         >
                             <Box
                                 component={Link}
-                                to={`/${item.path}`} // ใช้ชื่อ label เป็น path เช่น /อาหาร
+                                to={`/place/${item.path}`} // ใช้ชื่อ label เป็น path เช่น /อาหาร
                                 sx={{
                                     textDecoration: 'none',
                                     display: 'flex',

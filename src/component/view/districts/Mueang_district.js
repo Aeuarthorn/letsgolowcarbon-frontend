@@ -179,7 +179,7 @@ function Mueang_district({ screenWidth, defaultTheme, id }) {
                   >
                     <Card
                       component={RouterLink}
-                      to={`/route/mueang/${route.id}`}
+                      to={`/district/mueang/${route.id}`}
                       sx={{
                         borderRadius: 7,
                         maxWidth: '300px',

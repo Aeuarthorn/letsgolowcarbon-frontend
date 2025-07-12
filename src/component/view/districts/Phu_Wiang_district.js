@@ -173,7 +173,7 @@ function Phu_Wiang_district({ screenWidth, defaultTheme, id }) {
                     <Card
                       // phu_wiang
                       component={RouterLink}
-                      to={`/route/phu_wiang/${route.id}`}
+                      to={`/district/phu_wiang/${route.id}`}
                       sx={{
                         borderRadius: 7,
                         maxWidth: '300px',

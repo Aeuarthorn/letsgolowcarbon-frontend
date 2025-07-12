@@ -172,7 +172,7 @@ function Si_Chomphu_district({ screenWidth, defaultTheme, id }) {
                   >
                     <Card
                       component={RouterLink}
-                      to={`/route/si_chomphu/${route.id}`}
+                      to={`/district/si_chomphu/${route.id}`}
                       sx={{
                         borderRadius: 7,
                         maxWidth: '300px',

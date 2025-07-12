@@ -15,12 +15,13 @@ import { createTheme } from "@mui/material";
 // import MainRouteUbolratOne from "./component/view/routes/route_ubolrat/MainRouteUbolratOne";
 // import MainRouteUbolratTwo from "./component/view/routes/route_ubolrat/MainRouteUbolratTwo";
 import MainRoutes from "./component/view/routes/MainRoutes";
+import MainRoutePlace from "./component/view/routes/MainRoutePlace";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import LoginPage from "./LoginPage";
 import SignUpPage from "./SignUpPage";
 import MainAdmin from "./component/admin/MainAdmin";
 import MainUser from "./component/user/MainUser";
-import 'leaflet/dist/leaflet.css';
+import "leaflet/dist/leaflet.css";
 import MainTravel from "./component/view/travels/MainTravel";
 import MainCommunityProducts from "./component/view/communityProducts/MainCommunityProducts";
 import MainSouvenirs from "./component/view/souvenirs/MainSouvenirs";
@@ -48,7 +49,6 @@ export default function App() {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const [role, setRole] = useState("guest"); // กำหนด default เป็น guest เลย
   const [loadingRole, setLoadingRole] = useState(true);
-
 
   useEffect(() => {
     // ฟังก์ชันดึง role user
@@ -121,8 +121,9 @@ export default function App() {
       {/* HEADER */}
       {!isAdminPage && (
         <div
-          className={`transition-transform duration-300 fixed top-0 left-0 right-0 z-50 ${showHeader ? "translate-y-0" : "-translate-y-full"
-            }`}
+          className={`transition-transform duration-300 fixed top-0 left-0 right-0 z-50 ${
+            showHeader ? "translate-y-0" : "-translate-y-full"
+          }`}
         >
           <HeadPage
             screenWidth={screenWidth}
@@ -133,7 +134,7 @@ export default function App() {
         </div>
       )}
       {/* BODY CONTENT */}
-      <div style={{  paddingTop: !isAdminPage ? "60px" :"0px" }}>
+      <div style={{ paddingTop: !isAdminPage ? "60px" : "0px" }}>
         <Routes>
           <Route
             path="/"
@@ -186,81 +187,7 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="/travels"
-            element={
-              <ProtectedRoute
-                element={
-                  <MainTravel
-                    screenWidth={screenWidth}
-                    defaultTheme={defaultTheme}
-                  />
-                }
-                allowedRoles={["admin", "user", "guest"]}
-                userRole={role}
-              />
-            }
-          />
-          <Route
-            path="/home-stay"
-            element={
-              <ProtectedRoute
-                element={
-                  <MainHomeStays
-                    screenWidth={screenWidth}
-                    defaultTheme={defaultTheme}
-                  />
-                }
-                allowedRoles={["admin", "user", "guest"]}
-                userRole={role}
-              />
-            }
-          />
-          <Route
-            path="/food"
-            element={
-              <ProtectedRoute
-                element={
-                  <MainRestaurants
-                    screenWidth={screenWidth}
-                    defaultTheme={defaultTheme}
-                  />
-                }
-                allowedRoles={["admin", "user", "guest"]}
-                userRole={role}
-              />
-            }
-          />
-          <Route
-            path="/gift"
-            element={
-              <ProtectedRoute
-                element={
-                  <MainSouvenirs
-                    screenWidth={screenWidth}
-                    defaultTheme={defaultTheme}
-                  />
-                }
-                allowedRoles={["admin", "user", "guest"]}
-                userRole={role}
-              />
-            }
-          />
-          <Route
-            path="/market"
-            element={
-              <ProtectedRoute
-                element={
-                  <MainCommunityProducts
-                    screenWidth={screenWidth}
-                    defaultTheme={defaultTheme}
-                  />
-                }
-                allowedRoles={["admin", "user", "guest"]}
-                userRole={role}
-              />
-            }
-          />
+
           <Route
             path="/login"
             element={
@@ -331,8 +258,75 @@ export default function App() {
               />
             }
           />
+
           <Route
-            path="/route/:slug/:id"
+            path="/place/travels/*"
+            element={
+              <APIProvider apiKey={apiKey}>
+                <MainTravel
+                  screenWidth={screenWidth}
+                  defaultTheme={defaultTheme}
+                  allowedRoles={["guest"]}
+                  userRole={role}
+                />
+              </APIProvider>
+            }
+          />
+          <Route
+            path="/place/home-stay/*"
+            element={
+              <APIProvider apiKey={apiKey}>
+                <MainHomeStays
+                  screenWidth={screenWidth}
+                  defaultTheme={defaultTheme}
+                  allowedRoles={["guest"]}
+                  userRole={role}
+                />
+              </APIProvider>
+            }
+          />
+          <Route
+            path="/place/food/*"
+            element={
+              <APIProvider apiKey={apiKey}>
+                <MainRestaurants
+                  screenWidth={screenWidth}
+                  defaultTheme={defaultTheme}
+                  allowedRoles={["guest"]}
+                  userRole={role}
+                />
+              </APIProvider>
+            }
+          />
+          <Route
+            path="/place/gift/*"
+            element={
+              <APIProvider apiKey={apiKey}>
+                <MainSouvenirs
+                  screenWidth={screenWidth}
+                  defaultTheme={defaultTheme}
+                  allowedRoles={["guest"]}
+                  userRole={role}
+                />
+              </APIProvider>
+            }
+          />
+          <Route
+            path="/place/market/*"
+            element={
+              <APIProvider apiKey={apiKey}>
+                <MainCommunityProducts
+                  screenWidth={screenWidth}
+                  defaultTheme={defaultTheme}
+                  allowedRoles={["guest"]}
+                  userRole={role}
+                />
+              </APIProvider>
+            }
+          />
+
+          <Route
+            path="/district/:slug/:id"
             element={
               <APIProvider apiKey={apiKey}>
                 <MainRoutes />
