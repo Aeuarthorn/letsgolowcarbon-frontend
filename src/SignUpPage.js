@@ -6,25 +6,81 @@ import {
   Typography,
   Paper,
   Avatar,
+  Snackbar,
+  Alert,
+
 } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { useTranslation } from "react-i18next";
 import logo from "./component/logo/icon_new.png";
+import axios from "axios";
 
 function SignUpPage() {
   const { t } = useTranslation();
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const token = localStorage.getItem("token");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
-  const handleSignUp = () => {
+  const handleClose = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
     if (password !== confirmPassword) {
-      alert(t("password_mismatch"));
+      setSnackbar({
+        open: true,
+        message: t("password_mismatch"),
+        severity: "error",
+      });
+      setLoading(false);
       return;
     }
 
-    console.log("Sign up with:", { name, email, password });
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/register",
+        { name, email, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (response.status === 201) {
+        setSnackbar({
+          open: true,
+          message: t("signup_success"),
+          severity: "success",
+        });
+        setName("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+      } else {
+        setSnackbar({
+          open: true,
+          message: `${t("signup_failed")}: ${response.statusText}`,
+          severity: "error",
+        });
+      }
+    } catch (err) {
+      console.error("Register error:", err);
+      setSnackbar({
+        open: true,
+        message: t("network_error"),
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -117,6 +173,20 @@ function SignUpPage() {
           {t("signup")}
         </Button>
       </Paper>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleClose}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
