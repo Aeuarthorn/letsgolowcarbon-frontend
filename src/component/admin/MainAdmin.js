@@ -8,6 +8,7 @@ import MainAddRoutes from "../middles/MainAddRoutes";
 import MainAddRouteMap from "../middles/MainAddRouteMap";
 import MainAddRouteDetails from "../middles/MainAddRouteDetails";
 import MaiAddFormOfTravel from "../middles/MaiAddFormOfTravel";
+import MainAddDistrict from "../middles/MainAddDistrict";
 
 
 const drawerWidth = 260;
@@ -45,6 +46,9 @@ function MainAdmin({ screenWidth, defaultTheme }) {
       case "addTravelType":
         navigate("/admin/add/form/addtraveltype");
         break;
+      case "addRouteDistrictName":
+        navigate("/admin/add/district");
+        break;
       default:
         break;
     }
@@ -61,6 +65,7 @@ function MainAdmin({ screenWidth, defaultTheme }) {
           <Route path="/add/route/addroutemap" element={<MainAddRouteMap />} />
           <Route path="/add/route/addroutedetails" element={<MainAddRouteDetails />} />
           <Route path="/add/form/addtraveltype" element={<MaiAddFormOfTravel />} />
+          <Route path="/add/district" element={<MainAddDistrict />} />
           <Route path="/" element={<AdminDashboard />} /> {/* 👈 default dashboard */}
           <Route path="*" element={<h2 style={{ marginTop: 20 }}>ไม่พบหน้านี้</h2>} />
         </Routes>

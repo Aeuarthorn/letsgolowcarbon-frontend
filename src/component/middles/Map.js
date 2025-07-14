@@ -5,6 +5,8 @@ import {
 import L from "leaflet";
 
 export const fetchRouteBetweenPoints = async (from, to) => {
+    console.log('Fetching route from:', from, 'to:', to);
+
     const apiKey = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjI1OWMyZWE5OGNiMzRkNWJiOTU3YmY4NDkxMDUwN2RmIiwiaCI6Im11cm11cjY0In0="; // 🔑 ใส่ API key ที่นี่
     const url = "https://api.openrouteservice.org/v2/directions/driving-car/geojson";
 
@@ -59,8 +61,8 @@ export const createNumberedIcon = (number, isMiddle) =>
 export function LocationMarker({ onAddPoint }) {
     useMapEvents({
         click(e) {
-            const { lat, lng } = e.latlng;
-            onAddPoint({ lat, lng });
+            const latlng = [e.latlng.lat, e.latlng.lng];
+            onAddPoint(latlng, "เลือกจากแผนที่");
         },
     });
     return null;

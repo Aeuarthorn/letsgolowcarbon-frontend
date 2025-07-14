@@ -27,7 +27,7 @@ import {
     Image,
 } from "@mui/icons-material";
 import logo from "../../component/logo/icon_new.png";
-import { useNavigate ,Link} from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 const drawerWidth = 300;
 
 function AdminSideBar({ selected, onSelect }) {
@@ -100,6 +100,29 @@ function AdminSideBar({ selected, onSelect }) {
 
                 {/* เมนูหลัก */}
                 <Box sx={{ overflowY: "auto", px: 1 }}>
+                    {/* เพิ่มเส้นทาง */}
+                    <Accordion
+                        sx={{
+                            bgcolor: "#21AC2A",
+                            color: "white",
+                            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
+                            borderRadius: 1, // มุมมนเล็กน้อย (optional)
+                        }}
+                        defaultExpanded
+                    >
+                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
+                            <Typography>เพิ่มอำเภอ</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <List dense>
+                                <ListItem button onClick={() => onSelect("addRouteDistrictName")}>
+                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                    <ListItemText primary="เพิ่มชื่ออำเภอ" />
+                                </ListItem>
+
+                            </List>
+                        </AccordionDetails>
+                    </Accordion>
                     {/* เพิ่มเส้นทาง */}
                     <Accordion
                         sx={{

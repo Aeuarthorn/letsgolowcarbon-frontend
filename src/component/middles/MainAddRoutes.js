@@ -89,7 +89,7 @@ function MainAddRoutes() {
                 <UploadFile sx={{ fontSize: 40, mb: 1 }} />
                 <Typography variant="body1">{label}</Typography>
                 <Typography variant="caption" color="text.secondary">
-                    คลิกเพื่อเลือกไฟล์ (เฉพาะรูปภาพ)
+                    คลิกเพื่อเลือกไฟล์
                 </Typography>
 
                 <input
@@ -215,10 +215,12 @@ function MainAddRoutes() {
                                 <Grid item xs={12} sm={6}>
                                     <Box
                                         display="flex"
+                                        flexDirection={{ xs: 'column' }}
                                         justifyContent="center"
                                         alignItems="center"
                                         height="100%"
                                     >
+                                        (รูปภาพ 1 รูป ควรเป็นรูปสี่เหลี่ยมด้านเท่า)
                                         <UploadBox
                                             label="อัปโหลดรูปภาพแบรนด์"
                                             name="brandImage"
