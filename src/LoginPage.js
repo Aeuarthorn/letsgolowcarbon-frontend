@@ -28,9 +28,11 @@ function LoginPage({ onLoginSuccess }) {
         body: JSON.stringify(form),
       });
 
-      if (res.ok) {
+      if (res.status === 200) {
         const data = await res.json();
         const token = data.token;
+        const name = data.name;
+        const role = data.role;
 
         // 🔐 Decode JWT เพื่อดึงข้อมูลภายใน (role, user_id)
         const decoded = jwtDecode(token);
@@ -38,6 +40,9 @@ function LoginPage({ onLoginSuccess }) {
 
         // 🧠 เก็บ token ไว้ใน localStorage หรือ sessionStorage
         localStorage.setItem("token", token);
+        localStorage.setItem("name", name);
+        localStorage.setItem("role", role);
+
 
         // ⬅️ ส่งข้อมูล role กลับไปให้ App หรือ context
         if (onLoginSuccess) onLoginSuccess(decoded); // ส่ง decoded กลับไป

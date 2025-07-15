@@ -42,7 +42,7 @@ function MaiAddFormOfTravel() {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/traveltypes",
+        "http://localhost:8080/create_travel_types",
         { name }, // ← send { name: "..." }
         {
           headers: {

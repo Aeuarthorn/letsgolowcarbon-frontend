@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -13,6 +13,9 @@ import { getDistance } from "geolib";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { createNumberedIcon, fetchRouteBetweenPoints, LocationMarker } from "./Map";
+import axios from "axios";
+
+
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -52,6 +55,36 @@ export default function MainAddRouteMap() {
   const [selectedRoute, setSelectedRoute] = useState(routeOptions[0].id);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null); // [lat, lng]
+  const [travelRoute, setTravelRoute] = useState(null);
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const FetchDataTravelRoute = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("http://localhost:8080/travel", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.status === 200) {
+          setTravelRoute(response?.data);
+        } else {
+          alert("เกิดข้อผิดพลาด: " + response.statusText);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("เกิดข้อผิดพลาดขณะเชื่อมต่อ");
+      } finally {
+        setLoading(false);
+      }
+    };
+    FetchDataTravelRoute();
+  }, []);
+  console.log("travelRoute", travelRoute);
+  
 
   // เพิ่มพิกัดใหม่ใน points
   const addPoint = (position, name = "") => {
@@ -161,9 +194,12 @@ export default function MainAddRouteMap() {
             label="เลือกเส้นทาง"
             onChange={handleRouteChange}
           >
-            {routeOptions.map((route) => (
-              <MenuItem key={route.id} value={route.id}>
-                {route.label}
+            <MenuItem value="">
+              <em>-- เลือกเส้นทาง --</em>
+            </MenuItem>
+            {travelRoute?.map((d) => (
+              <MenuItem key={d.tid} value={d.tid}>
+                {d.name}
               </MenuItem>
             ))}
           </Select>

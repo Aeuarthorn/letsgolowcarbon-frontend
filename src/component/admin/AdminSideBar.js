@@ -111,13 +111,20 @@ function AdminSideBar({ selected, onSelect }) {
                         defaultExpanded
                     >
                         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
-                            <Typography>เพิ่มอำเภอ</Typography>
+                            <Typography>เพิ่มข้อมูล</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <List dense>
                                 <ListItem button onClick={() => onSelect("addRouteDistrictName")}>
                                     <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
                                     <ListItemText primary="เพิ่มชื่ออำเภอ" />
+                                </ListItem>
+
+                            </List>
+                            <List dense>
+                                <ListItem button onClick={() => onSelect("addLanguage")}>
+                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                    <ListItemText primary="เพิ่มภาษา" />
                                 </ListItem>
 
                             </List>

@@ -13,58 +13,69 @@ import {
   Button,
   IconButton,
   Divider,
+  Backdrop, CircularProgress, Alert, Snackbar
 } from "@mui/material";
 import { UploadFile, Close } from "@mui/icons-material";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 function MainAddRoutes() {
   const [formData, setFormData] = useState({
     name: "",
     language: "",
-    brandImage: null,
-    infographicImage: null,
-    district: "",
-    routeType: "",
+    brandImage: "",
+    infographicImage: "",
+    did: "",
+    ttid: "",
   });
   const [district, setDistrict] = useState([]);
+  const [travelRoute, setTravelRoute] = useState([]); // รูปแบบเส้นทาง
+  const [language, setLanguage] = useState([]); // ภาษ
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
+  const name = localStorage.getItem("name");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [errorSnackbar, setErrorSnackbar] = useState({ open: false, message: "" });
+  const [isDataReady, setIsDataReady] = useState(false);
 
   useEffect(() => {
-    const FetchDataDistrict = async () => {
+    const fetchData = async () => {
+      if (!token) return;
       setLoading(true);
       try {
-        const response = await axios.get("http://localhost:8080/district", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const [resDistrict, resTravel, resLanguage] = await Promise.all([
+          axios.get("http://localhost:8080/district", {
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          }),
+          axios.get("http://localhost:8080/travel", {
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          }),
+          axios.get("http://localhost:8080/language", {
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        console.log("resDistrict", resDistrict.data,);
+        console.log("resTravel", resTravel.data);
 
-        if (response.status === 200) {
-          setDistrict(response?.data);
-        } else {
-          alert("เกิดข้อผิดพลาด: " + response.statusText);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        alert("เกิดข้อผิดพลาดขณะเชื่อมต่อ");
+        setDistrict(resDistrict.data);
+        setTravelRoute(resTravel.data);
+        setLanguage(resLanguage.data);
+        setIsDataReady(true);
+      } catch (err) {
+        setErrorSnackbar({
+          open: true,
+          message: "โหลดข้อมูลล้มเหลว",
+        });
       } finally {
         setLoading(false);
       }
     };
-
-    FetchDataDistrict();
+    fetchData();
   }, []);
-  console.log("district", district);
 
-  //   const handleChange = (e) => {
-  //     const { name, value, files } = e.target;
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       [name]: files ? files[0] : value,
-  //     }));
-  //   };
+  console.log("district", district);
+  console.log("travelRoute", travelRoute);
+  console.log("language", language);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -189,189 +200,291 @@ function MainAddRoutes() {
     );
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (
       !formData.name ||
       !formData.language ||
-      !formData.district ||
-      !formData.routeType
+      !formData.did ||
+      !formData.ttid
     ) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
     }
-    console.log(formData);
+
+    if (!token || !name) {
+      alert("ไม่พบ token หรือ name");
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      console.log("Token decoded:", decoded);
+
+      const uid = decoded?.uid || decoded?.user_id || null;
+
+      const payload = {
+        ...formData,
+        uid,
+        // name, // ✅ ใช้ค่าจาก localStorage
+      };
+
+      console.log(" Payload พร้อมส่ง:", payload);
+
+      const response = await axios.post(
+        'http://localhost:8080/create_travel',
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        setOpenSnackbar(true);
+      } else {
+        alert("เกิดข้อผิดพลาด: " + response.statusText);
+      }
+    } catch (err) {
+      console.error("❌ Invalid token:", err);
+      alert("Token ไม่ถูกต้อง");
+    }
   };
 
   return (
+
     <Box sx={{ p: 4, backgroundColor: "#f0fdf4", minHeight: "100vh" }}>
-      <Card
-        sx={{
-          p: 4,
-          maxWidth: 1000,
-          mx: "auto",
-          mt: 4,
-          background: "#e6f4ea", // เขียวอ่อนสบายตา
-          color: "#2e7d32", // เขียวเข้มสำหรับตัวหนังสือ
-          borderRadius: 3,
-          boxShadow: "0 4px 12px rgba(46, 125, 50, 0.3)", // เงานุ่ม ๆ สีเขียว
-        }}
-      >
-        <CardContent>
-          <Typography variant="h5" fontWeight="bold" color="green" gutterBottom>
-            🛣️ เพิ่มเส้นทาง (Add Route)
-          </Typography>
+      {!isDataReady ? (
+        <Box textAlign="center" mt={5}>
+          <CircularProgress />
+          <Typography mt={2}>กำลังโหลดข้อมูล...</Typography>
+        </Box>
+      ) : (
+        <>
+          <Card
+            sx={{
+              p: 4,
+              maxWidth: 1000,
+              mx: "auto",
+              mt: 4,
+              background: "#e6f4ea", // เขียวอ่อนสบายตา
+              color: "#2e7d32", // เขียวเข้มสำหรับตัวหนังสือ
+              borderRadius: 3,
+              boxShadow: "0 4px 12px rgba(46, 125, 50, 0.3)", // เงานุ่ม ๆ สีเขียว
+            }}
+          >
+            <CardContent>
+              <Typography variant="h5" fontWeight="bold" color="green" gutterBottom>
+                🛣️ เพิ่มเส้นทาง (Add Route)
+              </Typography>
 
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                label="ชื่อเส้นทาง"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-            {/* รอเรียกจากฐานข้อมูล */}
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>ใช้สำหรับภาษา</InputLabel>
-                <Select
-                  name="language"
-                  value={formData.language}
-                  onChange={handleChange}
-                  label="ใช้สำหรับภาษา"
-                >
-                  <MenuItem value="TH">ภาษาไทย</MenuItem>
-                  <MenuItem value="EN">English</MenuItem>
-                  <MenuItem value="CN">中文</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* รูปภาพแบรนด์ & อินโฟกราฟฟิก (แถวเดียว) */}
-            <Grid item xs={12}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Box
-                    display="flex"
-                    flexDirection={{ xs: "column" }}
-                    justifyContent="center"
-                    alignItems="center"
-                    height="100%"
-                  >
-                    (รูปภาพ 1 รูป ควรเป็นรูปสี่เหลี่ยมด้านเท่า)
-                    <UploadBox
-                      label="อัปโหลดรูปภาพแบรนด์"
-                      name="brandImage"
-                      file={formData.brandImage}
-                      onChange={handleChange}
-                      onRemove={() => handleRemoveFile("brandImage")}
-                    />
-                  </Box>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    label="ชื่อเส้นทาง"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    fullWidth
+                  />
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    height="100%"
-                  >
-                    <UploadBox
-                      label="อัปโหลดอินโฟกราฟฟิก"
-                      name="infographicImage"
-                      file={formData.infographicImage}
-                      onChange={handleChange}
-                      onRemove={() => handleRemoveFile("infographicImage")}
-                    />
-                  </Box>
-                </Grid>
-              </Grid>
-            </Grid>
-            {/* รอดึงข้อมูลตาม อำเภอในฐานข้อมูล */}
-            <Grid item xs={12}>
-              <Grid container spacing={2}>
+                {/* รอเรียกจากฐานข้อมูล */}
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
-                    <InputLabel>อำเภอ</InputLabel>
+                    <InputLabel>ใช้สำหรับภาษา</InputLabel>
                     <Select
-                      name="district"
-                      value={formData.district}
+                      name="language"
+                      value={formData.language}
                       onChange={handleChange}
-                      label="อำเภอ"
-                      disabled={loading}
+                      label="ใช้สำหรับภาษา"
                     >
                       <MenuItem value="">
-                        <em>-- เลือกอำเภอ --</em>
+                        <em>-- เลือกภาษา --</em>
                       </MenuItem>
-                      {district?.map((d) => (
-                        <MenuItem key={d.did} value={d.name}>
-                          {d.name}
-                        </MenuItem>
-                      ))}
+                      {language?.length > 0 &&
+                        language?.map((d) => (
+                          <MenuItem key={d.lid} value={d.lid}>
+                            {d.local}
+                          </MenuItem>
+                        ))}
                     </Select>
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>รูปแบบเส้นทาง</InputLabel>
-                    <Select
-                      name="routeType"
-                      value={formData.routeType}
-                      onChange={handleChange}
-                      label="รูปแบบเส้นทาง"
-                    >
-                      <MenuItem value="เดิน">เดิน</MenuItem>
-                      <MenuItem value="รถยนต์">รถยนต์</MenuItem>
-                      <MenuItem value="จักรยาน">จักรยาน</MenuItem>
-                    </Select>
-                  </FormControl>
+                {/* รูปภาพแบรนด์ & อินโฟกราฟฟิก (แถวเดียว) */}
+                <Grid item xs={12}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Box
+                        display="flex"
+                        flexDirection={{ xs: "column" }}
+                        justifyContent="center"
+                        alignItems="center"
+                        height="100%"
+                      >
+                        (รูปภาพ 1 รูป ควรเป็นรูปสี่เหลี่ยมด้านเท่า)
+                        <UploadBox
+                          label="อัปโหลดรูปภาพแบรนด์"
+                          name="brandImage"
+                          file={formData.brandImage}
+                          onChange={handleChange}
+                          onRemove={() => handleRemoveFile("brandImage")}
+                        />
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Box
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                        height="100%"
+                      >
+                        <UploadBox
+                          label="อัปโหลดอินโฟกราฟฟิก"
+                          name="infographicImage"
+                          file={formData.infographicImage}
+                          onChange={handleChange}
+                          onRemove={() => handleRemoveFile("infographicImage")}
+                        />
+                      </Box>
+                    </Grid>
+                  </Grid>
                 </Grid>
-              </Grid>
-            </Grid>
+                {/* รอดึงข้อมูลตาม อำเภอในฐานข้อมูล */}
+                <Grid item xs={12}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>อำเภอ</InputLabel>
+                        <Select
+                          name="did"
+                          value={formData.did}
+                          onChange={handleChange}
+                          label="อำเภอ"
+                          disabled={loading}
+                        >
+                          <MenuItem value="">
+                            <em>-- เลือกอำเภอ --</em>
+                          </MenuItem>
+                          {district?.length > 0 &&
+                            district?.map((d) => (
+                              <MenuItem key={d.did} value={d.did}>
+                                {d.name}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
 
-            {/* เส้นคั่น */}
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} /> {/* เพิ่ม margin Y = 3 */}
-            </Grid>
-            {/* ปุ่ม รีเซต + บันทึก (แถวเดียว) */}
-            <Grid item xs={12}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleReset}
-                    sx={{
-                      borderColor: "gray",
-                      color: "gray",
-                      "&:hover": { backgroundColor: "#e8f5e9" },
-                    }}
-                  >
-                    รีเซต
-                  </Button>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>รูปแบบเส้นทาง</InputLabel>
+                        <Select
+                          name="ttid"
+                          value={formData.ttid}
+                          onChange={handleChange}
+                          label="รูปแบบเส้นทาง"
+                        >
+                          <MenuItem value="">
+                            <em>-- เลือกเส้นทาง --</em>
+                          </MenuItem>
+                          {travelRoute.length > 0 &&
+                            travelRoute?.map((d) => (
+                              <MenuItem key={d.ttid} value={d.ttid}>
+                                {d.name}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={handleSubmit}
-                    sx={{
-                      backgroundColor: "green",
-                      color: "#fff",
-                      "&:hover": {
-                        backgroundColor: "#2e7d32",
-                      },
-                    }}
-                  >
-                    บันทึกข้อมูล
-                  </Button>
+
+                {/* เส้นคั่น */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} /> {/* เพิ่ม margin Y = 3 */}
+                </Grid>
+                {/* ปุ่ม รีเซต + บันทึก (แถวเดียว) */}
+                <Grid item xs={12}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        onClick={handleReset}
+                        sx={{
+                          borderColor: "gray",
+                          color: "gray",
+                          "&:hover": { backgroundColor: "#e8f5e9" },
+                        }}
+                      >
+                        รีเซต
+                      </Button>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={handleSubmit}
+                        sx={{
+                          backgroundColor: "green",
+                          color: "#fff",
+                          "&:hover": {
+                            backgroundColor: "#2e7d32",
+                          },
+                        }}
+                      >
+                        บันทึกข้อมูล
+                      </Button>
+                    </Grid>
+                  </Grid>
                 </Grid>
               </Grid>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+          {/* // JSX ส่วนแสดง error Snackbar */}
+          <Snackbar
+            open={errorSnackbar.open}
+            autoHideDuration={3000}
+            onClose={() => setErrorSnackbar({ open: false, message: "" })}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
+            <Alert severity="error" variant="filled" sx={{ fontWeight: 'bold' }}>
+              {errorSnackbar.message}
+            </Alert>
+          </Snackbar>
+          {/* Snackbar Success */}
+          <Snackbar
+            open={openSnackbar}
+            autoHideDuration={1500}
+            onClose={() => setOpenSnackbar(false)}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <Alert
+              onClose={() => setOpenSnackbar(false)}
+              severity="success"
+              variant="filled"
+              sx={{
+                width: '100%',
+                backgroundColor: '#c8e6c9', // ✅ เขียวจาง (Green[100])
+                color: '#2e7d32',           // ✅ สีข้อความเขียวเข้ม
+                fontWeight: 'bold',
+              }}
+            >
+              บันทึกสำเร็จ
+            </Alert>
+          </Snackbar>
+          {/* Loading Overlay */}
+          <Backdrop
+            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            open={loading}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+          {/* ฟอร์มหลักของคุณ */}
+        </>
+      )}
     </Box>
   );
 }

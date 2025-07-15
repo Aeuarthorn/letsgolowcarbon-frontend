@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Button, Container, Typography, Box, Paper, Backdrop, CircularProgress, Alert, Snackbar } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Paper, Backdrop, CircularProgress, Alert, Snackbar, Card, CardContent } from '@mui/material';
 import axios from 'axios';
 import { CheckCircleOutline } from '@mui/icons-material';
 import CheckIcon from '@mui/icons-material/Check';
@@ -43,44 +43,60 @@ function MainAddDistrict() {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 8 }}>
-            <Paper
-                elevation={4}
+        <Box
+            sx={{
+                backgroundColor: "#e8f5e9", // เขียวจาง
+                minHeight: "100vh",
+                p: 4,
+            }}
+        >
+            <Card
                 sx={{
+                    maxWidth: 500,
+                    mx: "auto",
+                    mt: 6,
                     p: 4,
-                    bgcolor: '#e8f5e9', // light green earth tone
-                    borderRadius: '16px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    borderRadius: 3,
+                    boxShadow: "0 8px 20px rgba(56,142,60,0.3)", // เขียวเข้ม
+                    background: "#ffffff",
                 }}
             >
-                <Typography variant="h5" align="center" gutterBottom color="green">
-                    เพิ่มจังหวัด
-                </Typography>
-                <Box component="form" noValidate autoComplete="off">
-                    <TextField
-                        fullWidth
-                        label="ชื่อจังหวัด"
-                        variant="outlined"
-                        value={districts}
-                        onChange={(e) => setDistricts(e.target.value)}
-                        sx={{
-                            mb: 3,
-                            backgroundColor: '#ffffff',
-                        }}
-                    />
-
-                    <Button
-                        fullWidth
-                        variant="contained"
-                        color="success"
-                        onClick={handleSave}
-                        disabled={!districts || loading}
-                        sx={{ borderRadius: '8px', py: 1.5, fontWeight: 'bold' }}
+                <CardContent>
+                    <Typography
+                        variant="h5"
+                        fontWeight="bold"
+                        color="green"
+                        gutterBottom
+                        textAlign="center"
                     >
-                        บันทึก
-                    </Button>
-                </Box>
-            </Paper>
+                        เพิ่มจังหวัด
+                    </Typography>
+                    <Box component="form" noValidate autoComplete="off">
+                        <TextField
+                            fullWidth
+                            label="ชื่อจังหวัด"
+                            variant="outlined"
+                            value={districts}
+                            onChange={(e) => setDistricts(e.target.value)}
+                            sx={{
+                                mb: 3,
+                                backgroundColor: '#ffffff',
+                            }}
+                        />
+
+                        <Button
+                            fullWidth
+                            variant="contained"
+                            color="success"
+                            onClick={handleSave}
+                            disabled={!districts || loading}
+                            sx={{ borderRadius: '8px', py: 1.5, fontWeight: 'bold' }}
+                        >
+                            บันทึก
+                        </Button>
+                    </Box>
+                </CardContent>
+            </Card>
             {/* Snackbar Success */}
             <Snackbar
                 open={openSnackbar}
@@ -109,7 +125,7 @@ function MainAddDistrict() {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
-        </Container>
+        </Box>
     );
 }
 
