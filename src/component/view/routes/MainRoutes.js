@@ -16,7 +16,7 @@ import {
 import { getDistance } from "geolib";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { createNumberedIcon, LocationMarker, LocationMarkerView } from '../../middles/Map';
+// import { createNumberedIcon, LocationMarker, LocationMarkerView } from '../../middles/Map';
 import { fuelDataTable, vehicleTypes } from '../../middles/MockData';
 
 
@@ -148,9 +148,9 @@ function MainRoutes() {
                                     attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
                                 />
 
-                                <LocationMarkerView onAddPoint={""} />
+                                {/* <LocationMarkerView onAddPoint={""} /> */}
 
-                                {points?.map((pos, idx) => {
+                                {/* {points?.map((pos, idx) => {
                                     const isMiddlePoint = idx > 0 && idx < points.length - 1;
                                     const numberedIcon = createNumberedIcon(idx + 1, isMiddlePoint);
 
@@ -171,7 +171,7 @@ function MainRoutes() {
                                             </Popup>
                                         </Marker>
                                     );
-                                })}
+                                })} */}
 
 
                                 {/* เส้นทางจริงตามถนน */}

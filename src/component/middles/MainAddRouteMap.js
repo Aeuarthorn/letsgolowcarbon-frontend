@@ -1,310 +1,253 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
-  MapContainer,
-  TileLayer,
+  GoogleMap,
+  LoadScript,
   Marker,
-  Popup,
   Polyline,
-  useMapEvents,
-  useMap,
-} from "react-leaflet";
-import { Box, Button, Typography, Paper, List, ListItem, FormControl, InputLabel, Select, MenuItem, TextField } from "@mui/material";
-import { getDistance } from "geolib";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-import { createNumberedIcon, fetchRouteBetweenPoints, LocationMarker } from "./Map";
-import axios from "axios";
+  useJsApiLoader,
+} from "@react-google-maps/api";
+import { Box, Typography, TextField, Button, Stack } from "@mui/material";
 
+const mapContainerStyle = { width: "100%", height: "500px" };
+const defaultCenter = { lat: 13.736717, lng: 100.523186 }; // กทม.
 
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
-// Component เล็ก ๆ สำหรับให้ map ทำการย้ายตำแหน่ง (flyTo)
-function FlyToLocation({ position }) {
-  const map = useMap();
-
-  React.useEffect(() => {
-    if (position) {
-      map.flyTo(position, 14, { duration: 2 });
-    }
-  }, [position, map]);
-
-  return null;
-}
-
-
-const routeOptions = [
-  { id: 'route1', label: 'เส้นทาง 1' },
-  { id: 'route2', label: 'เส้นทาง 2' },
-  { id: 'route3', label: 'เส้นทาง 3' },
-];
-
-
-
-// ====== Main Component ======
-export default function MainAddRouteMap() {
-  const [loading, setLoading] = useState(false);
+const MainAddRouteMap = () => {
   const [points, setPoints] = useState([]);
-  const [routePolyline, setRoutePolyline] = useState([]);
-  const [selectedRoute, setSelectedRoute] = useState(routeOptions[0].id);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResult, setSearchResult] = useState(null); // [lat, lng]
-  const [travelRoute, setTravelRoute] = useState(null);
-  const token = localStorage.getItem("token");
+  const [routePath, setRoutePath] = useState([]); // เก็บเส้นทางที่ได้จาก Directions API
+  const [input, setInput] = useState("");
+  const mapRef = useRef(null);
 
-  useEffect(() => {
-    const FetchDataTravelRoute = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get("http://localhost:8080/travel", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
-        if (response.status === 200) {
-          setTravelRoute(response?.data);
-        } else {
-          alert("เกิดข้อผิดพลาด: " + response.statusText);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        alert("เกิดข้อผิดพลาดขณะเชื่อมต่อ");
-      } finally {
-        setLoading(false);
-      }
-    };
-    FetchDataTravelRoute();
-  }, []);
-  console.log("travelRoute", travelRoute);
-  
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+  });
 
-  // เพิ่มพิกัดใหม่ใน points
-  const addPoint = (position, name = "") => {
-    setPoints((prev) => [...prev, { position, name }]);
-    setRoutePolyline([]);
-    setLoading(false)
-  };
-  // ฟังก์ชันค้นหาโดยใช้ Nominatim API
-  const handleSearch = async () => {
-    if (!searchQuery) return;
-    setLoading(true)
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          searchQuery
-        )}`
-      );
-      const data = await response.json();
-      if (data.length > 0) {
-        const { lat, lon, display_name } = data[0];
-        const position = [parseFloat(lat), parseFloat(lon)];
-        addPoint(position, display_name);
-      } else {
-        alert("ไม่พบสถานที่ที่ค้นหา");
-      }
-    } catch (error) {
-      console.error("เกิดข้อผิดพลาดในการค้นหา:", error);
-      alert("เกิดข้อผิดพลาดในการค้นหา");
-      setLoading(false)
-    }
-  };
-
-  const handleAddPoint = (point) => {
-    setPoints((prev) => [...prev, point]);
-    setRoutePolyline([]); // ล้างเส้นทางเมื่อมีการเพิ่มจุดใหม่
-  };
-
-  const handleRouteChange = (event) => {
-    setSelectedRoute(event.target.value);
-    console.log('เลือกเส้นทาง:', event.target.value);
-    // ถ้าต้องโหลดข้อมูลเส้นทางตามที่เลือก ก็ทำที่นี่
-  };
-
-  const handleReset = () => {
-    setPoints([]);
-    setRoutePolyline([]);
-  };
-
-  const handleRemovePoint = (index) => {
-    const newPoints = [...points];
-    newPoints.splice(index, 1);
-    setPoints(newPoints);
-    setRoutePolyline([]);
-  };
-
-  const handleSubmit = async () => {
+  // ฟังก์ชันเรียก Directions API และตั้งค่าเส้นทาง
+  const fetchRoute = async (points) => {
     if (points.length < 2) {
-      alert("ต้องมีอย่างน้อย 2 จุดเพื่อคำนวณเส้นทาง");
+      setRoutePath([]);
       return;
     }
-    let totalDistance = 0;
-    const fullPath = [];
-    setLoading(true)
+
+    const directionsService = new window.google.maps.DirectionsService();
+
+    const origin = points[0];
+    const destination = points[points.length - 1];
+    const waypoints = points.slice(1, points.length - 1).map((p) => ({
+      location: { lat: p.lat, lng: p.lng },
+      stopover: true,
+    }));
+
+    directionsService?.route(
+      {
+        origin,
+        destination,
+        waypoints,
+        travelMode: window.google.maps.TravelMode.DRIVING, // หรือ WALKING, BICYCLING ตามต้องการ
+        optimizeWaypoints: true, // เพื่อให้ Google หาทางที่ใกล้ที่สุด
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          const path = [];
+
+          // ดึง path ทุกจุดจาก legs ของ route
+          result.routes[0].legs.forEach((leg) => {
+            leg.steps.forEach((step) => {
+              step.path.forEach((latlng) => {
+                path.push({ lat: latlng.lat(), lng: latlng.lng() });
+              });
+            });
+          });
+
+          setRoutePath(path);
+        } else {
+          console.error("Directions request failed due to " + status);
+          setRoutePath([]);
+        }
+      }
+    );
+  };
+
+  const handleAddPoint = async () => {
+    const parts = input.split(",");
+    if (parts.length !== 2) {
+      alert("กรุณากรอกพิกัดในรูปแบบ lat,lng เช่น 13.7367,100.5231");
+      return;
+    }
+    const lat = parseFloat(parts[0].trim());
+    const lng = parseFloat(parts[1].trim());
+
+    if (isNaN(lat) || isNaN(lng)) {
+      alert("พิกัดไม่ถูกต้อง");
+      return;
+    }
+
     try {
-      for (let i = 0; i < points.length - 1; i++) {
-        const from = {
-          lat: points[i].position[0],
-          lng: points[i].position[1],
-        };
-        const to = {
-          lat: points[i + 1].position[0],
-          lng: points[i + 1].position[1],
-        };
-        const segment = await fetchRouteBetweenPoints(from, to);
-        fullPath.push(...segment);
-      }
+      // Reverse geocoding ไม่เปลี่ยนแปลง
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+      );
+      const data = await res.json();
+      const name =
+        data.name || data.display_name?.split(",")[0]?.trim() || `(${lat}, ${lng})`;
 
-      for (let i = 0; i < fullPath.length - 1; i++) {
-        totalDistance += getDistance(fullPath[i], fullPath[i + 1]);
-      }
+      const newPoints = [...points, { lat, lng, name }];
+      setPoints(newPoints);
+      setInput("");
 
-      setRoutePolyline(fullPath);
-      // alert(`รวมทั้งหมด: ${(totalDistance / 1000).toFixed(2)} km`);
-      console.log(`รวมทั้งหมด: ${(totalDistance / 1000).toFixed(2)} km`);
-      // เก็บสถานที่ท่องเที่ยว แตต่ละจุด Marker จะมีชื่อและพิกัด เข้าฐานข้อมูลในตาราง travelroute
-      // 
-      setLoading(false)
-    } catch (err) {
-      console.error("เกิดข้อผิดพลาดในการโหลดเส้นทาง", err);
-      alert("เกิดข้อผิดพลาดในการดึงเส้นทาง กรุณาลองใหม่");
-      setLoading(false)
+      // เรียกหาทางที่ใกล้ที่สุดทุกครั้งที่เพิ่มจุด
+      fetchRoute(newPoints);
+    } catch (error) {
+      console.error("Reverse geocoding error:", error);
+      const newPoints = [...points, { lat, lng, name: `(${lat}, ${lng})` }];
+      setPoints(newPoints);
+      setInput("");
+      fetchRoute(newPoints);
     }
   };
 
+  useEffect(() => {
+    if (points.length && mapRef.current) {
+      const last = points[points.length - 1];
+      mapRef.current.panTo(last);
+      mapRef.current.setZoom(14);
+    }
+  }, [points]);
+
+  if (loadError) return <div>Map cannot be loaded right now, sorry.</div>;
+  if (!isLoaded) return <div>Loading Maps...</div>;
+
   return (
-    <Box p={2}>
-      <Typography variant="h6" gutterBottom>
-        เพิ่มจุดเส้นทางบนแผนที่
+    <Box
+      sx={{
+        borderRadius: 2,
+        height: '100vh',
+        // border: "2px solid #81c784", // สีเขียว MUI
+        // backgroundColor: "#e8f5e9", // สีเขียวอ่อน
+        overflow: "hidden",
+        mt: 2,
+      }}
+    >
+      <Typography
+        variant="h5"
+        component="h2"
+        sx={{
+          mb: 3,
+          fontWeight: "bold",
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        📍 เพิ่มจุดและเส้นทางบน Google Map
       </Typography>
 
-      <Box display="flex" alignItems="center" gap={2} mb={2}>
-        <FormControl sx={{ minWidth: 300, flexShrink: 0 }}>
-          <InputLabel id="select-route-label">เลือกเส้นทาง</InputLabel>
-          <Select
-            labelId="select-route-label"
-            value={selectedRoute}
-            label="เลือกเส้นทาง"
-            onChange={handleRouteChange}
-          >
-            <MenuItem value="">
-              <em>-- เลือกเส้นทาง --</em>
-            </MenuItem>
-            {travelRoute?.map((d) => (
-              <MenuItem key={d.tid} value={d.tid}>
-                {d.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <Box display="flex" gap={1} flexGrow={1}>
-          <TextField
-            fullWidth
-            label="พิกัดตำแหน่ง (Lat, Lng)"
-            variant="outlined"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <Button variant="contained" onClick={handleSearch}>
-            เพิ่ม
-          </Button>
-        </Box>
-      </Box>
-      {/* MAP */}
-      <MapContainer
-        center={[13.736717, 100.523186]}
-        zoom={6}
-        style={{ height: "500px", width: "100%", borderRadius: 10 }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          label="พิกัด (lat,lng)"
+          placeholder="เช่น 13.7367,100.5231"
+          variant="outlined"
+          size="medium"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          sx={{
+            bgcolor: "white",
+            borderRadius: 1,
+          }}
         />
-        <LocationMarker onAddPoint={handleAddPoint} />
+        <Button
+          variant="contained"
+          color="success"
+          size="medium"
+          onClick={handleAddPoint}
+          sx={{
+            px: 4,
+            fontWeight: "bold",
+            "&:hover": {
+              bgcolor: "#1b5e20",
+            },
+          }}
+        >
+          เพิ่ม
+        </Button>
+      </Stack>
+      <Box
+        sx={{
+          borderRadius: 2,
+          border: "2px solid #81c784",
+          backgroundColor: "#e8f5e9",
+          overflow: "hidden",
+          height: "500px", // ต้องกำหนดความสูงให้ map แสดงผล
+        }}
+      >
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={points.length ? points[0] : defaultCenter}
+          zoom={6}
+          onLoad={(map) => (mapRef.current = map)}
+        >
+          {points.map((p, idx) => (
+            <Marker key={idx} position={{ lat: p.lat, lng: p.lng }} label={`${idx + 1}`} title={p.name} />
+          ))}
 
-        {points?.map((p, idx) => {
-          const isMiddlePoint = idx > 0 && idx < points.length - 1;
-          const numberedIcon = createNumberedIcon(idx + 1, isMiddlePoint);
+          {routePath.length > 0 && (
+            <Polyline
+              path={routePath}
+              options={{
+                strokeColor: "#2e7d32",
+                strokeOpacity: 0.9,
+                strokeWeight: 5,
+              }}
+            />
+          )}
+        </GoogleMap>
+      </Box>
 
-          return (
-            <Marker key={idx} position={p.position} icon={numberedIcon}>
-              <Popup>
-                จุดที่ {idx + 1}
-                <br />
-                {p.name && <><b>{p.name}</b><br /></>}
-                <br />
-                Lat: {p.position[0].toFixed(6)}<br />
-                Lng: {p.position[1].toFixed(6)}<br />
-                <br />
-                <Button
-                  color="error"
-                  size="small"
-                  onClick={() => handleRemovePoint(idx)}
-                >
-                  ลบจุดนี้
-                </Button>
-              </Popup>
-            </Marker>
-          );
-        })}
+      {points.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            📌 รายการพิกัดที่เพิ่ม:
+          </Typography>
 
-
-        {/* เส้นทางจริงตามถนน */}
-        {routePolyline.length > 0 && (
-          <Polyline
-            positions={routePolyline.map((p) => [p.lat, p.lng])}
-            pathOptions={{ color: "blue", weight: 4 }}
-          />
-        )}
-      </MapContainer>
-
-      <Paper elevation={3} sx={{ mt: 2, p: 2 }}>
-        <Typography variant="body1" mb={1}>
-          รายการพิกัด:
-        </Typography>
-        {points.length > 0 ? (
-          <List dense>
-            {points.map((p, i) => (
-              <ListItem
-                key={i}
-                secondaryAction={
-                  <Button
-                    color="error"
-                    size="small"
-                    onClick={() => handleRemovePoint(i)}
-                  >
-                    ลบ
-                  </Button>
-                }
+          <Stack spacing={1}>
+            {points.map((point, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  p: 1,
+                  borderRadius: 1,
+                  backgroundColor: "#f1f8e9",
+                  border: "1px solid #c5e1a5",
+                }}
               >
-                จุดที่ {i + 1} — {p.name ? `${p.name} — ` : ""}
-                Lat: {p.position[0].toFixed(6)}, Lng: {p.position[1].toFixed(6)}
-              </ListItem>
+                <Typography>
+                  <strong>{idx + 1}.</strong> {point.name} ({point.lat.toFixed(6)}, {point.lng.toFixed(6)})
+                </Typography>
+              </Box>
             ))}
-          </List>
-        ) : (
-          <Typography color="text.secondary">ยังไม่มีจุดที่เลือก</Typography>
-        )}
+          </Stack>
 
-        <Box mt={2} display="flex" justifyContent="space-between">
-          <Button variant="outlined" color="warning" onClick={handleReset}>
-            รีเซต
-          </Button>
-          <Button variant="contained" color="success" onClick={handleSubmit}>
-            ยืนยันการเพิ่ม
+          <Button
+            variant="contained"
+            color="success"
+            sx={{ mt: 2, fontWeight: "bold" }}
+            onClick={() => {
+              // ตัวอย่าง: บันทึกลง console หรือเปลี่ยนเป็น POST ไป API ได้
+              console.log("ข้อมูลที่เพิ่ม:", points);
+              alert("ข้อมูลถูกบันทึก (ดู console.log ได้)");
+            }}
+          >
+            💾 บันทึกข้อมูล
           </Button>
         </Box>
-      </Paper>
+      )
+      }
 
-    </Box>
+
+    </Box >
   );
-}
+};
+
+export default MainAddRouteMap;
