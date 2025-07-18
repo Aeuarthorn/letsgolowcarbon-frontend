@@ -6,7 +6,8 @@ import {
   Polyline,
   useJsApiLoader,
 } from "@react-google-maps/api";
-import { Box, Typography, TextField, Button, Stack } from "@mui/material";
+import { Box, Typography, TextField, Button, Stack, Select, MenuItem, InputLabel, FormControl, Snackbar, Alert } from "@mui/material";
+import axios from "axios";
 
 const mapContainerStyle = { width: "100%", height: "500px" };
 const defaultCenter = { lat: 13.736717, lng: 100.523186 }; // กทม.
@@ -16,13 +17,35 @@ const MainAddRouteMap = () => {
   const [routePath, setRoutePath] = useState([]); // เก็บเส้นทางที่ได้จาก Directions API
   const [input, setInput] = useState("");
   const mapRef = useRef(null);
-
+  const [loading, setLoading] = useState(false);
+  const [travelses, setTravelses] = useState([]); // 👉 ลิสต์ข้อมูลจาก API
+  const [selectedTravelses, setSelectedTravelses] = useState(""); // 👉 tid ที่ถูกเลือก
+  const token = localStorage.getItem("token");
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertOpentravel, setAlertOpentravel] = useState(false);
+  const [alertMessagetravel, setAlertMessagetravel] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [placeOptions, setPlaceOptions] = useState([]);
+  const [selectedPlaceName, setSelectedPlaceName] = useState("");
+  const [selectedPlace, setSelectedPlace] = useState(null); // ข้อมูลเต็มของสถานที่ที่เลือก
   const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+  const { isLoaded, loadError } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY, });
 
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-  });
+  const loadTravelses = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/travel", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
+      setTravelses(response.data || []); // ตรวจสอบรูปแบบ data ด้วย (array?)
+      console.log("✅ ดึงข้อมูลอำเภอสำเร็จ:", response.data);
+    } catch (error) {
+      console.error("❌ ดึงข้อมูลอำเภอล้มเหลว:", error);
+    }
+  };
   // ฟังก์ชันเรียก Directions API และตั้งค่าเส้นทาง
   const fetchRoute = async (points) => {
     if (points.length < 2) {
@@ -75,6 +98,7 @@ const MainAddRouteMap = () => {
       alert("กรุณากรอกพิกัดในรูปแบบ lat,lng เช่น 13.7367,100.5231");
       return;
     }
+
     const lat = parseFloat(parts[0].trim());
     const lng = parseFloat(parts[1].trim());
 
@@ -82,38 +106,120 @@ const MainAddRouteMap = () => {
       alert("พิกัดไม่ถูกต้อง");
       return;
     }
+    console.log("lat", lat);
+    console.log("lng", lng);
 
     try {
-      // Reverse geocoding ไม่เปลี่ยนแปลง
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-      );
+      const res = await fetch(`http://localhost:8080/map_search?lat=${lat}&lng=${lng}`, {
+        method: "GET", // กรณีนี้ใช้ GET
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
-      const name =
-        data.name || data.display_name?.split(",")[0]?.trim() || `(${lat}, ${lng})`;
+      console.log("📍 ข้อมูลจาก API หลังบ้าน:", data);
 
-      const newPoints = [...points, { lat, lng, name }];
-      setPoints(newPoints);
-      setInput("");
-
-      // เรียกหาทางที่ใกล้ที่สุดทุกครั้งที่เพิ่มจุด
-      fetchRoute(newPoints);
+      if (data.results?.length > 0) {
+        setPlaceOptions(data.results);
+        setSelectedPlaceName(data.results[0].name);
+      } else {
+        setPlaceOptions([]);
+        setSelectedPlaceName(`(${lat.toFixed(6)}, ${lng.toFixed(6)})`);
+      }
     } catch (error) {
-      console.error("Reverse geocoding error:", error);
-      const newPoints = [...points, { lat, lng, name: `(${lat}, ${lng})` }];
-      setPoints(newPoints);
-      setInput("");
-      fetchRoute(newPoints);
+      console.error("❗ Error fetching place info:", error);
+      setPlaceOptions([]);
+      setSelectedPlaceName(`(${lat}, ${lng})`);
     }
   };
 
+  const handleConfirmAdd = () => {
+    if (!selectedPlace) return;
+
+    const newPoint = {
+      lat: selectedPlace.lat,
+      lng: selectedPlace.lng,
+      name: selectedPlace.name,
+    };
+
+    const newPoints = [...points, newPoint];
+    setPoints(newPoints);
+    setInput("");
+    setPlaceOptions([]);
+    setSelectedPlaceName("");
+    // setSelectedPlace(null);
+    fetchRoute(newPoints); // ค่อยเรียกหาเส้นทาง
+  };
+
+  const handletravelsesChange = (event) => {
+    const tid = event.target.value;
+    setSelectedTravelses(tid); // ✅ เก็บค่า tid ที่เลือก
+    console.log("🆔 tid ที่เลือก:", tid);
+  };
+
   useEffect(() => {
+    // 1. โหลด Districts ครั้งเดียวเมื่อ map พร้อม
+    if (isLoaded && token && travelses.length === 0) {
+      loadTravelses();
+    }
+
+    // 2. Pan ไปยังจุดล่าสุดเมื่อเพิ่มจุด
     if (points.length && mapRef.current) {
       const last = points[points.length - 1];
       mapRef.current.panTo(last);
-      mapRef.current.setZoom(14);
+      if (points.length === 1) {
+        mapRef.current.setZoom(14);
+      }
     }
-  }, [points]);
+  }, [points, isLoaded, token]);
+
+
+  const handleSaveData = async () => {
+    if (!selectedTravelses || selectedTravelses.length === 0) {
+      setAlertMessagetravel("โปรดเลือกอำเภอ");
+      setAlertOpentravel(true);
+      return;
+    }
+    if (points.length < 2) {
+      setAlertMessage("ต้องเพิ่มจุดอย่างน้อย 2 จุดก่อนบันทึกข้อมูล");
+      setAlertOpen(true);
+      return;
+    }
+    setLoading(true); // เริ่มโหลด
+    try {
+
+      console.log("🚀 กำลังส่งข้อมูลไปยัง API:", points);
+      const enrichedPoints = points.map((point) => ({
+        ...point,
+        tid: selectedTravelses,
+      }));
+
+      console.log("🚀 กำลังส่งข้อมูลไปยัง enrichedPoints:", enrichedPoints);
+      // const response = await fetch("https://your-api.com/save-points", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(points),
+      // });
+
+      // const result = await response.json();
+
+      // if (response.ok) {
+      //   console.log("✅ บันทึกสำเร็จ:", result);
+      //   alert("✅ ข้อมูลถูกบันทึกเรียบร้อยแล้ว!");
+      // } else {
+      //   console.error("❌ เกิดข้อผิดพลาด:", result);
+      //   alert("❌ ไม่สามารถบันทึกข้อมูลได้");
+      // }
+    } catch (error) {
+      console.error("❗ Error ส่งข้อมูล:", error);
+      alert("⚠️ เกิดข้อผิดพลาดขณะส่งข้อมูล");
+    } finally {
+      setLoading(false); // หยุดโหลดไม่ว่าจะสำเร็จหรือ error
+    }
+  };
 
   if (loadError) return <div>Map cannot be loaded right now, sorry.</div>;
   if (!isLoaded) return <div>Loading Maps...</div>;
@@ -122,7 +228,7 @@ const MainAddRouteMap = () => {
     <Box
       sx={{
         borderRadius: 2,
-        height: '100vh',
+        // height: '100vh',
         // border: "2px solid #81c784", // สีเขียว MUI
         // backgroundColor: "#e8f5e9", // สีเขียวอ่อน
         overflow: "hidden",
@@ -143,7 +249,32 @@ const MainAddRouteMap = () => {
         📍 เพิ่มจุดและเส้นทางบน Google Map
       </Typography>
 
+
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
+        <FormControl sx={{ minWidth: 250 }} size="medium">
+          <InputLabel id="travelses-select-label">อำเภอ</InputLabel>
+          <Select
+            name="travelses-select"
+            labelId="travelses-select-label"
+            id="travelses-select"
+            value={selectedTravelses} // ✅ ใช้ค่าที่เลือก
+            label="อำเภอ"
+            onChange={handletravelsesChange}
+            sx={{
+              bgcolor: "white",
+              borderRadius: 1,
+            }}
+          >
+            <MenuItem value="">
+              <em>-- เลือกอำเภอ --</em>
+            </MenuItem>
+            {travelses?.map((d) => (
+              <MenuItem key={d.tid} value={d.tid}>
+                {d.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <TextField
           fullWidth
           label="พิกัด (lat,lng)"
@@ -164,15 +295,66 @@ const MainAddRouteMap = () => {
           onClick={handleAddPoint}
           sx={{
             px: 4,
+            width: '200px',
             fontWeight: "bold",
             "&:hover": {
               bgcolor: "#1b5e20",
             },
           }}
         >
-          เพิ่ม
+          ค้นหาสถานที่
         </Button>
       </Stack>
+      {/* {placeOptions.length > 0 && ( */}
+      <Box mt={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+          <FormControl fullWidth sx={{ flex: 3 }}>
+            <InputLabel id="place-select-label">เลือกสถานที่</InputLabel>
+            <Select
+              sx={{
+                bgcolor: "white",
+                borderRadius: 1,
+              }}
+              labelId="place-select-label"
+              value={selectedPlaceName}
+              label="เลือกสถานที่"
+              onChange={(e) => {
+                const name = e.target.value;
+                setSelectedPlaceName(name);
+                const matched = placeOptions.find((p) => p.name === name);
+                if (matched) {
+                  setSelectedPlace(matched);
+                  // 👇 คุณสามารถเรียกแสดง marker preview ที่นี่
+                }
+              }}
+            >
+              {placeOptions.map((place, index) => (
+                <MenuItem key={index} value={place.name}>
+                  {place.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="outlined"
+            disabled={selectedPlaceName === ""}
+            sx={{
+              height: "56px",
+              flex: 1,
+              color: "white",
+              bgcolor: "#2045e6ff",
+              "&:hover": {
+                bgcolor: "#1b5e20",
+              },
+            }}
+            onClick={handleConfirmAdd}
+          >
+            เพิ่มพิกัด
+          </Button>
+        </Stack>
+      </Box>
+      {/* )} */}
       <Box
         sx={{
           borderRadius: 2,
@@ -204,49 +386,110 @@ const MainAddRouteMap = () => {
           )}
         </GoogleMap>
       </Box>
+      <Box sx={{
+        mt: 3,
+        borderRadius: 2,
+        border: "2px solid #81c784",
+        backgroundColor: "#e8f5e9",
+        overflow: "hidden",
+        height: "300px", // ต้องกำหนดความสูงให้ map แสดงผล
+      }}
+      >
+        <Typography variant="h6" sx={{ m: 2 }}>
+          📌 <u>รายการพิกัดที่เพิ่ม</u>
+        </Typography>
 
-      {points.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            📌 รายการพิกัดที่เพิ่ม:
-          </Typography>
-
-          <Stack spacing={1}>
-            {points.map((point, idx) => (
-              <Box
-                key={idx}
-                sx={{
-                  p: 1,
-                  borderRadius: 1,
-                  backgroundColor: "#f1f8e9",
-                  border: "1px solid #c5e1a5",
-                }}
+        {points.length > 0 && (
+          <>
+            <Stack spacing={1} sx={{ m: 2 }}>
+              {points.map((point, idx) => (
+                <Box
+                  key={idx}
+                  sx={{
+                    p: 1,
+                    borderRadius: 1,
+                    backgroundColor: "#f1f8e9",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    border: "1px solid #c5e1a5",
+                  }}
+                >
+                  <Typography>
+                    <strong>{`พิกัดที่ : ${idx + 1}`}.</strong> {point.name} ({point.lat.toFixed(6)}, {point.lng.toFixed(6)})
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    color="error"
+                    onClick={() => {
+                      const updatedPoints = points.filter((_, i) => i !== idx);
+                      setPoints(updatedPoints);
+                      fetchRoute(updatedPoints); // อัปเดตเส้นทาง
+                    }}
+                  >
+                    ลบ
+                  </Button>
+                </Box>
+              ))}
+            </Stack>
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Button
+                variant="contained"
+                color="success"
+                sx={{ mt: 2, fontWeight: "bold" }}
+                onClick={handleSaveData}
+                disabled={loading}
               >
-                <Typography>
-                  <strong>{idx + 1}.</strong> {point.name} ({point.lat.toFixed(6)}, {point.lng.toFixed(6)})
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-
-          <Button
-            variant="contained"
-            color="success"
-            sx={{ mt: 2, fontWeight: "bold" }}
-            onClick={() => {
-              // ตัวอย่าง: บันทึกลง console หรือเปลี่ยนเป็น POST ไป API ได้
-              console.log("ข้อมูลที่เพิ่ม:", points);
-              alert("ข้อมูลถูกบันทึก (ดู console.log ได้)");
-            }}
-          >
-            💾 บันทึกข้อมูล
-          </Button>
-        </Box>
-      )
-      }
-
-
-    </Box >
+                {loading ? "⏳ กำลังบันทึก..." : "💾 บันทึกข้อมูล"}
+              </Button>
+            </Box>
+          </>
+        )}
+      </Box>
+      <Snackbar
+        open={alertOpen}
+        autoHideDuration={3000}
+        onClose={() => setAlertOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setAlertOpen(false)}
+          severity="warning"
+          sx={{
+            width: "100%",
+            backgroundColor: "#d32f2f", // แดงเข้ม (error main)
+            color: "#fff",              // ตัวอักษรขาว
+            "& .MuiAlert-icon": {
+              color: "#fff",            // ไอคอนขาวด้วย
+            },
+          }}
+        >
+          {alertMessage}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={alertOpentravel}
+        autoHideDuration={3000}
+        onClose={() => setAlertOpentravel(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setAlertOpentravel(false)}
+          severity="warning"
+          sx={{
+            width: "100%",
+            backgroundColor: "#d32f2f", // แดงเข้ม (error main)
+            color: "#fff",              // ตัวอักษรขาว
+            "& .MuiAlert-icon": {
+              color: "#fff",            // ไอคอนขาวด้วย
+            },
+          }}
+        >
+          {alertMessagetravel}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

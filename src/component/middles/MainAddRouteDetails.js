@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     Box,
     Button,
@@ -11,6 +11,8 @@ import {
     InputLabel,
     FormControl,
 } from "@mui/material";
+import axios from "axios";
+
 
 function MainAddRouteDetails() {
     const [route, setRoute] = useState("");
@@ -21,6 +23,34 @@ function MainAddRouteDetails() {
         afternoon: "",
         evening: "",
     });
+    const [loading, setLoading] = useState(false);
+    const [travelses, setTravelses] = useState([]); // 👉 ลิสต์ข้อมูลจาก API
+    const token = localStorage.getItem("token");
+    const hasFetched = useRef(false);
+
+    const loadTravelses = async () => {
+        try {
+            const response = await axios.get("http://localhost:8080/travel", {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            setTravelses(response.data || []); // ตรวจสอบรูปแบบ data ด้วย (array?)
+            console.log("✅ ดึงข้อมูลอำเภอสำเร็จ:", response.data);
+        } catch (error) {
+            console.error("❌ ดึงข้อมูลอำเภอล้มเหลว:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (!hasFetched.current && token) {
+            loadTravelses();
+            hasFetched.current = true;
+        }
+    }, []);
+
 
     const handleChange = (field) => (event) => {
         setSections((prev) => ({ ...prev, [field]: event.target.value }));
@@ -84,10 +114,13 @@ function MainAddRouteDetails() {
                             }}
                         >
                             <MenuItem value="">
-                                <em>โปรดคลิกเพื่อเลือก</em>
+                                <em>-- เลือกอำเภอ --</em>
                             </MenuItem>
-                            <MenuItem value="route1">เส้นทาง 1</MenuItem>
-                            <MenuItem value="route2">เส้นทาง 2</MenuItem>
+                            {travelses?.map((d) => (
+                                <MenuItem key={d.tid} value={d.tid}>
+                                    {d.name}
+                                </MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
                 </Grid>

@@ -254,7 +254,11 @@ function MainAddRoutes() {
 
   return (
 
-    <Box sx={{ p: 4, backgroundColor: "#f0fdf4", minHeight: "100vh" }}>
+    <Box sx={{
+      p: 4,
+      // backgroundColor: "#f0fdf4",
+      minHeight: "100vh"
+    }}>
       {!isDataReady ? (
         <Box textAlign="center" mt={5}>
           <CircularProgress />
@@ -287,6 +291,10 @@ function MainAddRoutes() {
                     value={formData.name}
                     onChange={handleChange}
                     fullWidth
+                    sx={{
+                      bgcolor: "white",
+                      borderRadius: 1,
+                    }}
                   />
                 </Grid>
                 {/* รอเรียกจากฐานข้อมูล */}
@@ -298,6 +306,10 @@ function MainAddRoutes() {
                       value={formData.language}
                       onChange={handleChange}
                       label="ใช้สำหรับภาษา"
+                      sx={{
+                        bgcolor: "white",
+                        borderRadius: 1,
+                      }}
                     >
                       <MenuItem value="">
                         <em>-- เลือกภาษา --</em>
@@ -363,6 +375,10 @@ function MainAddRoutes() {
                           onChange={handleChange}
                           label="อำเภอ"
                           disabled={loading}
+                          sx={{
+                            bgcolor: "white",
+                            borderRadius: 1,
+                          }}
                         >
                           <MenuItem value="">
                             <em>-- เลือกอำเภอ --</em>
@@ -385,6 +401,10 @@ function MainAddRoutes() {
                           value={formData.ttid}
                           onChange={handleChange}
                           label="รูปแบบเส้นทาง"
+                          sx={{
+                            bgcolor: "white",
+                            borderRadius: 1,
+                          }}
                         >
                           <MenuItem value="">
                             <em>-- เลือกเส้นทาง --</em>

@@ -13,7 +13,6 @@ const mapContainerStyle = {
     width: "100%",
 };
 
-const center = { lat: 13.736717, lng: 100.523186 }; // กรุงเทพมหานคร
 
 export const MyGoogleMap = ({ points = [], route = [] }) => {
     const mapRef = useRef(null);
@@ -31,7 +30,7 @@ export const MyGoogleMap = ({ points = [], route = [] }) => {
         <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
             <GoogleMap
                 mapContainerStyle={mapContainerStyle}
-                center={points.length ? points[0] : { lat: 13.736717, lng: 100.523186 }}
+                center={points.length ? points[0] : { lat: 13.736717, lng: 100.523186 }} //กรุงเทพ
                 zoom={6}
                 onLoad={(map) => (mapRef.current = map)}
             >
