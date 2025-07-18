@@ -13,7 +13,10 @@ import {
   Button,
   IconButton,
   Divider,
-  Backdrop, CircularProgress, Alert, Snackbar
+  Backdrop,
+  CircularProgress,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import { UploadFile, Close } from "@mui/icons-material";
 import axios from "axios";
@@ -28,6 +31,10 @@ function MainAddRoutes() {
     did: "",
     ttid: "",
   });
+  const [images, setImages] = useState({
+    brandImage: null,
+    infographicImage: null,
+  });
   const [district, setDistrict] = useState([]);
   const [travelRoute, setTravelRoute] = useState([]); // รูปแบบเส้นทาง
   const [language, setLanguage] = useState([]); // ภาษ
@@ -35,7 +42,10 @@ function MainAddRoutes() {
   const token = localStorage.getItem("token");
   const name = localStorage.getItem("name");
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [errorSnackbar, setErrorSnackbar] = useState({ open: false, message: "" });
+  const [errorSnackbar, setErrorSnackbar] = useState({
+    open: false,
+    message: "",
+  });
   const [isDataReady, setIsDataReady] = useState(false);
 
   useEffect(() => {
@@ -45,16 +55,25 @@ function MainAddRoutes() {
       try {
         const [resDistrict, resTravel, resLanguage] = await Promise.all([
           axios.get("http://localhost:8080/district", {
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }),
           axios.get("http://localhost:8080/travel", {
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }),
           axios.get("http://localhost:8080/language", {
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }),
         ]);
-        console.log("resDistrict", resDistrict.data,);
+        console.log("resDistrict", resDistrict.data);
         console.log("resTravel", resTravel.data);
 
         setDistrict(resDistrict.data);
@@ -85,7 +104,7 @@ function MainAddRoutes() {
   };
 
   const handleRemoveFile = (fieldName) => {
-    setFormData((prev) => ({
+    setImages((prev) => ({
       ...prev,
       [fieldName]: null,
     }));
@@ -106,10 +125,10 @@ function MainAddRoutes() {
     const [previewUrl, setPreviewUrl] = useState(null);
 
     useEffect(() => {
-      if (file && file.type.startsWith("image/")) {
+      if (file && file.type && file.type.startsWith("image/")) {
         const url = URL.createObjectURL(file);
         setPreviewUrl(url);
-        return () => URL.revokeObjectURL(url); // Clean up
+        return () => URL.revokeObjectURL(url);
       } else {
         setPreviewUrl(null);
       }
@@ -231,13 +250,13 @@ function MainAddRoutes() {
       console.log(" Payload พร้อมส่ง:", payload);
 
       const response = await axios.post(
-        'http://localhost:8080/create_travel',
+        "http://localhost:8080/create_travel",
         payload,
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -252,13 +271,56 @@ function MainAddRoutes() {
     }
   };
 
-  return (
+  // upload IMAGE
+  // เก็บไฟล์จริงไว้ใน state
+  const handleFileInputChange = (e, field) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImages((prev) => ({
+        ...prev,
+        [field]: file,
+      }));
+    }
+  };
+  // ส่งไฟล์ด้วย FormData
+  const handleUpload = async () => {
+    const formData = new FormData();
+    if (images.brandImage) {
+      formData.append("brandImage", images.brandImage);
+    }
+    if (images.infographicImage) {
+      formData.append("infographicImage", images.infographicImage);
+    }
+    formData.append("tid", 1);
 
-    <Box sx={{
-      p: 4,
-      // backgroundColor: "#f0fdf4",
-      minHeight: "100vh"
-    }}>
+    try {
+      const res = await axios.post(
+        "http://localhost:8080/upload_image",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Uploaded URLs:", res.data.data);
+    } catch (error) {
+      console.error("Upload error:", error.response?.data || error.message);
+    }
+  };
+
+  const imageUrl =
+    "https://res.cloudinary.com/letgolowcarbon/image/upload/q_auto/f_auto/tid_1_infographic.jpg";
+
+  return (
+    <Box
+      sx={{
+        p: 4,
+        // backgroundColor: "#f0fdf4",
+        minHeight: "100vh",
+      }}
+    >
       {!isDataReady ? (
         <Box textAlign="center" mt={5}>
           <CircularProgress />
@@ -279,7 +341,12 @@ function MainAddRoutes() {
             }}
           >
             <CardContent>
-              <Typography variant="h5" fontWeight="bold" color="green" gutterBottom>
+              <Typography
+                variant="h5"
+                fontWeight="bold"
+                color="green"
+                gutterBottom
+              >
                 🛣️ เพิ่มเส้นทาง (Add Route)
               </Typography>
 
@@ -339,8 +406,10 @@ function MainAddRoutes() {
                         <UploadBox
                           label="อัปโหลดรูปภาพแบรนด์"
                           name="brandImage"
-                          file={formData.brandImage}
-                          onChange={handleChange}
+                          file={images.brandImage}
+                          onChange={(e) =>
+                            handleFileInputChange(e, "brandImage")
+                          }
                           onRemove={() => handleRemoveFile("brandImage")}
                         />
                       </Box>
@@ -355,11 +424,33 @@ function MainAddRoutes() {
                         <UploadBox
                           label="อัปโหลดอินโฟกราฟฟิก"
                           name="infographicImage"
-                          file={formData.infographicImage}
-                          onChange={handleChange}
+                          file={images.infographicImage}
+                          onChange={(e) =>
+                            handleFileInputChange(e, "infographicImage")
+                          }
                           onRemove={() => handleRemoveFile("infographicImage")}
+                          // onChange={(file) =>
+                          //   handleChangeUpload("infographicImage", file)
+                          // } // <- ส่งชื่อและไฟล์
+                          // onRemove={() => handleRemoveFile("infographicImage")}
                         />
                       </Box>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={handleUpload}
+                        sx={{
+                          backgroundColor: "green",
+                          color: "#fff",
+                          "&:hover": {
+                            backgroundColor: "#2e7d32",
+                          },
+                        }}
+                      >
+                        image
+                      </Button>
                     </Grid>
                   </Grid>
                 </Grid>
@@ -463,14 +554,31 @@ function MainAddRoutes() {
               </Grid>
             </CardContent>
           </Card>
+
+          {/* SHOW IMAGE */}
+          <Box
+            component="img"
+            src="https://res.cloudinary.com/letsgolowcarbon/image/upload/v1752860348/infographic/tid_1_infographic.jpg"
+            alt="Infographic"
+            sx={{
+              width: "100%",
+              maxWidth: 400,
+              borderRadius: 2,
+            }}
+          />
+
           {/* // JSX ส่วนแสดง error Snackbar */}
           <Snackbar
             open={errorSnackbar.open}
             autoHideDuration={3000}
             onClose={() => setErrorSnackbar({ open: false, message: "" })}
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
           >
-            <Alert severity="error" variant="filled" sx={{ fontWeight: 'bold' }}>
+            <Alert
+              severity="error"
+              variant="filled"
+              sx={{ fontWeight: "bold" }}
+            >
               {errorSnackbar.message}
             </Alert>
           </Snackbar>
@@ -479,17 +587,17 @@ function MainAddRoutes() {
             open={openSnackbar}
             autoHideDuration={1500}
             onClose={() => setOpenSnackbar(false)}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
           >
             <Alert
               onClose={() => setOpenSnackbar(false)}
               severity="success"
               variant="filled"
               sx={{
-                width: '100%',
-                backgroundColor: '#c8e6c9', // ✅ เขียวจาง (Green[100])
-                color: '#2e7d32',           // ✅ สีข้อความเขียวเข้ม
-                fontWeight: 'bold',
+                width: "100%",
+                backgroundColor: "#c8e6c9", // ✅ เขียวจาง (Green[100])
+                color: "#2e7d32", // ✅ สีข้อความเขียวเข้ม
+                fontWeight: "bold",
               }}
             >
               บันทึกสำเร็จ
@@ -497,7 +605,7 @@ function MainAddRoutes() {
           </Snackbar>
           {/* Loading Overlay */}
           <Backdrop
-            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
             open={loading}
           >
             <CircularProgress color="inherit" />
