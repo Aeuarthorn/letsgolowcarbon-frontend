@@ -556,7 +556,7 @@ function MainAddRoutes() {
           </Card>
 
           {/* SHOW IMAGE */}
-          <Box
+          {/* <Box
             component="img"
             src="https://res.cloudinary.com/letsgolowcarbon/image/upload/v1752860348/infographic/tid_1_infographic.jpg"
             alt="Infographic"
@@ -565,7 +565,7 @@ function MainAddRoutes() {
               maxWidth: 400,
               borderRadius: 2,
             }}
-          />
+          /> */}
 
           {/* // JSX ส่วนแสดง error Snackbar */}
           <Snackbar
