@@ -299,102 +299,114 @@ function MainRoutes() {
                 </Grid>
 
                 {/* Fuel Table */}
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={12}>
                     <Typography variant="h6" fontWeight="bold" gutterBottom>
                         คำนวณน้ำมันและคาร์บอน
                     </Typography>
                     <Typography variant="h9" gutterBottom>
                         *ราคาน้ำมันวันที่ 10 ตุลาคม 2567
                     </Typography>
-                    <Table
-                        size="small"
+                    <Box
                         sx={{
-                            borderCollapse: "collapse",
                             width: "100%",
-                            border: "1px solid #ccc",
+                            display: 'flex',              // ✅ จัด layout แบบ flex
+                            justifyContent: 'center',     // ✅ จัดแนวนอนให้ตรงกลาง
+                            alignItems: 'center',         // ถ้าต้องการแนวตั้ง (ไม่จำเป็นในกรณีนี้)
+                            textAlign: 'center',
+                            mt: 2,
                         }}
                     >
-                        <TableHead>
-                            <TableRow>
-                                {[
-                                    "เส้นทาง",
-                                    "ระยะทาง (กม.)",
-                                    "พาหนะ",
-                                    "น้ำมัน",
-                                    "ราคาต่อลิตร",
-                                    "ปริมาณที่ใช้",
-                                    "คาร์บอน",
-                                    "จำนวน (บาท)",
-                                ].map((head, idx) => (
-                                    <TableCell
-                                        key={idx}
-                                        align="center"
-                                        sx={{
-                                            border: "1px solid #ccc",
-                                            fontWeight: "bold",
-                                            backgroundColor: "#f9f9f9",
-                                        }}
-                                    >
-                                        {head}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
+                        <Table
+                            size="small"
+                            sx={{
+                                borderCollapse: "collapse",
+                                width: "100%",
+                                border: "1px solid #ccc",
 
-                        <TableBody>
-                            {fuelDataTable?.map((route, routeIdx) => {
-                                const vehicleRows = route?.vehicles?.flatMap(v => v?.fuels).length;
-                                let vehicleRowCounter = 0;
+                            }}
+                        >
+                            <TableHead>
+                                <TableRow >
+                                    {[
+                                        "เส้นทาง",
+                                        "ระยะทาง (กม.)",
+                                        "พาหนะ",
+                                        "น้ำมัน",
+                                        "ราคาต่อลิตร",
+                                        "ปริมาณที่ใช้",
+                                        "คาร์บอน",
+                                        "จำนวน (บาท)",
+                                    ].map((head, idx) => (
+                                        <TableCell
+                                            key={idx}
+                                            align="center"
+                                            sx={{
+                                                border: "1px solid #ccc",
+                                                fontWeight: "bold",
+                                                backgroundColor: "#f9f9f9",
+                                                fontSize: '0.75rem'
+                                            }}
+                                        >
+                                            {head}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {fuelDataTable?.map((route, routeIdx) => {
+                                    const vehicleRows = route?.vehicles?.flatMap(v => v?.fuels).length;
+                                    let vehicleRowCounter = 0;
 
-                                return route?.vehicles?.map((vehicle, vehicleIdx) =>
-                                    vehicle?.fuels?.map((fuel, fuelIdx) => {
-                                        const isFirstVehicleRow = fuelIdx === 0;
-                                        const isFirstRouteRow = vehicleRowCounter === 0;
+                                    return route?.vehicles?.map((vehicle, vehicleIdx) =>
+                                        vehicle?.fuels?.map((fuel, fuelIdx) => {
+                                            const isFirstVehicleRow = fuelIdx === 0;
+                                            const isFirstRouteRow = vehicleRowCounter === 0;
 
-                                        vehicleRowCounter++;
+                                            vehicleRowCounter++;
 
-                                        return (
-                                            <TableRow key={`${routeIdx}-${vehicleIdx}-${fuelIdx}`}>
-                                                {isFirstRouteRow && (
-                                                    <>
-                                                        <TableCell rowSpan={vehicleRows} sx={{ border: "1px solid #ccc" }}>
-                                                            {route.route}
+                                            return (
+                                                <TableRow key={`${routeIdx}-${vehicleIdx}-${fuelIdx}`} sx={{ fontSize: '0.75rem' }}>
+                                                    {isFirstRouteRow && (
+                                                        <>
+                                                            <TableCell rowSpan={vehicleRows} sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
+                                                                {route.route}
+                                                            </TableCell>
+                                                            <TableCell rowSpan={vehicleRows} align="center" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
+                                                                {route.distance}
+                                                            </TableCell>
+                                                        </>
+                                                    )}
+
+                                                    {isFirstVehicleRow && (
+                                                        <TableCell
+                                                            rowSpan={vehicle?.fuels?.length}
+                                                            sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}
+                                                        >
+                                                            {vehicle?.type}
                                                         </TableCell>
-                                                        <TableCell rowSpan={vehicleRows} align="center" sx={{ border: "1px solid #ccc" }}>
-                                                            {route.distance}
-                                                        </TableCell>
-                                                    </>
-                                                )}
+                                                    )}
 
-                                                {isFirstVehicleRow && (
-                                                    <TableCell
-                                                        rowSpan={vehicle?.fuels?.length}
-                                                        sx={{ border: "1px solid #ccc" }}
-                                                    >
-                                                        {vehicle?.type}
+                                                    <TableCell sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>{fuel?.name}</TableCell>
+                                                    <TableCell align="right" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
+                                                        {fuel?.price.toFixed(2)}
                                                     </TableCell>
-                                                )}
-
-                                                <TableCell sx={{ border: "1px solid #ccc" }}>{fuel?.name}</TableCell>
-                                                <TableCell align="right" sx={{ border: "1px solid #ccc" }}>
-                                                    {fuel?.price.toFixed(2)}
-                                                </TableCell>
-                                                <TableCell align="right" sx={{ border: "1px solid #ccc" }}>
-                                                    {fuel?.use.toFixed(2)} L
-                                                </TableCell>
-                                                <TableCell align="right" sx={{ border: "1px solid #ccc" }}>
-                                                    {fuel?.co2.toFixed(2)} kg CO2e
-                                                </TableCell>
-                                                <TableCell align="right" sx={{ border: "1px solid #ccc" }}>
-                                                    {(fuel?.price * fuel?.use).toFixed(2)}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
+                                                    <TableCell align="right" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
+                                                        {fuel?.use.toFixed(2)} L
+                                                    </TableCell>
+                                                    <TableCell align="right" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
+                                                        {fuel?.co2.toFixed(2)} kg CO2e
+                                                    </TableCell>
+                                                    <TableCell align="right" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
+                                                        {(fuel?.price * fuel?.use).toFixed(2)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </Box>
                 </Grid>
 
             </Grid>

@@ -470,7 +470,7 @@ export default function HeadPage({
                         mx: 0.5,
                         borderRadius: 2,
                         textTransform: "none",
-                        fontSize: "1rem",
+                        // fontSize: "1rem",
                         transition: "background-color 0.3s ease",
                         "&:hover": { backgroundColor: "rgba(255, 0, 0, 0.2)" },
                       }}
@@ -509,7 +509,7 @@ export default function HeadPage({
                         sx={{
                           borderRadius: 2,
                           textTransform: "none",
-                          fontSize: "1rem",
+                          // fontSize: "1rem",
                           mx: 0.5,
                         }}
                         endIcon={<KeyboardArrowDownIcon fontSize="small" />}
@@ -532,7 +532,7 @@ export default function HeadPage({
                           <LoginIcon fontSize="small" sx={{ mr: 1 }} />
                           {t("login")}
                         </MenuItem>
-                        <MenuItem
+                        {/* <MenuItem
                           onClick={() => {
                             navigate("/signup");
                             handleLoginMenuClose();
@@ -540,7 +540,7 @@ export default function HeadPage({
                         >
                           <PersonAddIcon fontSize="small" sx={{ mr: 1 }} />
                           {t("signup")}
-                        </MenuItem>
+                        </MenuItem> */}
                       </Menu>
                     </>
                   ) : (

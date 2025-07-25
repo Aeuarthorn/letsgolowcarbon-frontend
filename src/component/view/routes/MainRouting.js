@@ -13,8 +13,10 @@ import {
   createTheme,
 } from "@mui/material";
 import * as React from "react";
+import { useState } from "react";
 import { useTranslation, I18nextProvider } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import Calculate from "../modals/Calculate";
 
 const defaultTheme = createTheme({
   typography: {
@@ -31,6 +33,7 @@ const defaultTheme = createTheme({
 function MainRouting({ screenWidth }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const [openCalculate, setOpenCalculate] = useState(false)
 
   // ให้แน่ใจว่า districts เป็น Array
   const districtsRaw = t("districts", { returnObjects: true });
@@ -41,6 +44,15 @@ function MainRouting({ screenWidth }) {
     type: "button",
     icon: item?.icon,
   }));
+
+
+
+  const handleOpenCalculate = () => {
+    setOpenCalculate(true)
+  }
+  const handleOpenCalculateOfEntrepreneurs = () => {
+    window.open('https://drive.google.com/drive/folders/1FzoudFQdc-_N0Xri8stf54_4MHFUfZs0', '_blank');
+  }
 
   return (
     <I18nextProvider i18n={i18n}>
@@ -74,6 +86,7 @@ function MainRouting({ screenWidth }) {
               <Button
                 fullWidth
                 variant="contained"
+                onClick={handleOpenCalculate}
                 sx={{
                   backgroundColor: "#f0f0f0",
                   color: "black",
@@ -111,6 +124,7 @@ function MainRouting({ screenWidth }) {
               <Button
                 fullWidth
                 variant="contained"
+                onClick={handleOpenCalculateOfEntrepreneurs}
                 sx={{
                   backgroundColor: "#f0f0f0",
                   color: "black",
@@ -249,6 +263,14 @@ function MainRouting({ screenWidth }) {
           </Box>
         </Box>
       </ThemeProvider>
+      {
+        openCalculate && (
+          <Calculate
+            open={openCalculate}
+            close={setOpenCalculate}
+          />
+        )
+      }
     </I18nextProvider>
   );
 }
