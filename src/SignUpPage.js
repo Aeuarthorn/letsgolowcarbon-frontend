@@ -57,7 +57,7 @@ function SignUpPage() {
       if (response.status === 201) {
         setSnackbar({
           open: true,
-          message: t("signup_success"),
+          message: t("สมัครสมาชิกสำเร็จ"),
           severity: "success",
         });
         setName("");

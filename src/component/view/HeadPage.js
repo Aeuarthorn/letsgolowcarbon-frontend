@@ -75,10 +75,10 @@ export default function HeadPage({
 
   const [language, setLanguage] = useState(i18n.language);
   const roleMap = {
-    "1": "admin",
-    "2": "admin",
-    "3": "user",
-    "37": "guest", // ตัวอย่าง: บาง role อ่านได้ แต่เขียน/ลบไม่ได้
+    1: "admin",
+    2: "admin",
+    3: "user",
+    37: "guest", // ตัวอย่าง: บาง role อ่านได้ แต่เขียน/ลบไม่ได้
     // เพิ่มตามจริงจาก decoded.role ที่คุณมี
   };
   const [role, setRole] = useState("guest");
@@ -192,11 +192,11 @@ export default function HeadPage({
     //   label: t("login"),
     //   icon: <ContactMailIcon fontSize="small" />,
     // },
-    // {
-    //   type: "signin",
-    //   label: t("signin"),
-    //   icon: <ContactMailIcon fontSize="small" />,
-    // },
+    {
+      type: "signin",
+      label: t("signin"),
+      icon: <ContactMailIcon fontSize="small" />,
+    },
     // { type: 'roles', label: t('role'), icon: <ContactMailIcon fontSize="small" /> },
   ];
 
@@ -505,7 +505,11 @@ export default function HeadPage({
                       <Button
                         color="inherit"
                         startIcon={<AccountCircleIcon />}
-                        onClick={role === "guest" ? handleLoginMenuOpen : handleUserMenuOpen}
+                        onClick={
+                          role === "guest"
+                            ? handleLoginMenuOpen
+                            : handleUserMenuOpen
+                        }
                         sx={{
                           borderRadius: 2,
                           textTransform: "none",
@@ -514,7 +518,8 @@ export default function HeadPage({
                         }}
                         endIcon={<KeyboardArrowDownIcon fontSize="small" />}
                       >
-                        {typeof role === "string" && ["guest", "admin", "user"].includes(role)
+                        {typeof role === "string" &&
+                        ["guest", "admin", "user"].includes(role)
                           ? t(role)
                           : t("guest")}
                       </Button>
@@ -532,7 +537,7 @@ export default function HeadPage({
                           <LoginIcon fontSize="small" sx={{ mr: 1 }} />
                           {t("login")}
                         </MenuItem>
-                        {/* <MenuItem
+                         <MenuItem
                           onClick={() => {
                             navigate("/signup");
                             handleLoginMenuClose();
@@ -540,7 +545,7 @@ export default function HeadPage({
                         >
                           <PersonAddIcon fontSize="small" sx={{ mr: 1 }} />
                           {t("signup")}
-                        </MenuItem> */}
+                        </MenuItem>
                       </Menu>
                     </>
                   ) : (
