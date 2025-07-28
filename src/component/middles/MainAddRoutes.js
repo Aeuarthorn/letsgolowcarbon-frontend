@@ -35,9 +35,10 @@ function MainAddRoutes() {
     brandImage: null,
     infographicImage: null,
   });
-  const [district, setDistrict] = useState([]);
+  const [district, setDistrict] = useState([]); // จังหวัด
   const [travelRoute, setTravelRoute] = useState([]); // รูปแบบเส้นทาง
-  const [language, setLanguage] = useState([]); // ภาษ
+  const [language, setLanguage] = useState([]); // ภาษา
+  const [travelType, setTravelType] = useState([]); // รูปแบบวันเที่ยว
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
   const name = localStorage.getItem("name");
@@ -53,7 +54,7 @@ function MainAddRoutes() {
       if (!token) return;
       setLoading(true);
       try {
-        const [resDistrict, resTravel, resLanguage] = await Promise.all([
+        const [resDistrict, resTravel, resLanguage, travelType] = await Promise.all([
           axios.get("http://localhost:8080/district", {
             headers: {
               "Content-Type": "application/json",
@@ -72,13 +73,21 @@ function MainAddRoutes() {
               Authorization: `Bearer ${token}`,
             },
           }),
+          axios.get("http://localhost:8080/travel_types", {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }),
         ]);
         console.log("resDistrict", resDistrict.data);
         console.log("resTravel", resTravel.data);
+        console.log("travelType", travelType.data);
 
         setDistrict(resDistrict.data);
         setTravelRoute(resTravel.data);
         setLanguage(resLanguage.data);
+        setTravelType(travelType.data);
         setIsDataReady(true);
       } catch (err) {
         setErrorSnackbar({
@@ -244,6 +253,8 @@ function MainAddRoutes() {
       const payload = {
         ...formData,
         uid,
+        img_main:'',
+        img_infographic:'',
         // name, // ✅ ใช้ค่าจาก localStorage
       };
 
@@ -500,8 +511,8 @@ function MainAddRoutes() {
                           <MenuItem value="">
                             <em>-- เลือกเส้นทาง --</em>
                           </MenuItem>
-                          {travelRoute.length > 0 &&
-                            travelRoute?.map((d) => (
+                          {travelType.length > 0 &&
+                            travelType?.map((d) => (
                               <MenuItem key={d.ttid} value={d.ttid}>
                                 {d.name}
                               </MenuItem>
