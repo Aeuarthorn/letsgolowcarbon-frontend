@@ -18,36 +18,35 @@ import {
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 function MainAddPlaces() {
     const { placeType } = useParams();
     const [form, setForm] = useState({
-        name: "",  // ชื่อสถานที่
-        // usage: "th",  // ภาษา
-        img_main: "",   // รูปหลักของสถานที่
-        history_and_background: "", // ประวัติความเป็นมา
-        detail: "", 
+        placeType: "",  // หมวดที่อยู่
+        attractionName: "",  // ชื่อสถานที่
+        language: "th",  // ภาษา
+        bannerImage: "",   // เลือกไฟล์รูป BANNER
+        detailedImage: "",   // เลือกไฟล์รูปละเอียด
+        historyDescription: "", // ประวัติความเป็นมา
+        activities: "", // กิจกรรม
+        cost: "", // ค่าใช้จ่าย
+        touristCapacity: "", // การรองรับนักท่องเที่ยว
+        openingHours: "", // เวลาทำการ
+        touristSeason: "", // ฤดูการท่องเที่ยว
+        electricityUsage: "", // การใช้ไฟฟ้า
+        waterUsage: "", // การใช้น้ำ
+        fuelUsage: "", // การใช้น้ำมัน
+        wastewaterManagement: "", // การจัดการน้ำและการเปลี่ยนถ่ายน้ำเสีย
+        wasteManagement: "", // การจัดการขยะ
+        ecoSystemChange: "", // การเปลี่ยนระบบของสถานที่ท่องเที่ยว
+        contactInfo: "", // ติดต่อสถานที่s
+        locationDescription: "", // ที่ตั้ง
+        googleMapCoordinates: "", // Google Map (latitude,longitude)
+        notes: "", // หมายเหตุ
+        uid: null, // ไอดีผู้ลงข้อมูล
+        did: null, // ไอดีจังหวัด
 
-
-        quantity: "",
-        bannerFile: null,
-        detailFile: null,
-        history: "",
-        activity: "",
-        expense: "",
-        tourControl: "",
-        // food: "",
-        tourismSeason: "",
-        electricityUsage: "",
-        waterUsage: "",
-        garbageUsage: "",
-        waterTreatment: "",
-        cleaning: "",
-        tourismSystemChange: "",
-        contact: "",
-        address: "",
-        remark: "",
-        googleMap: "",
     });
     const [district, setDistrict] = useState([]); // จังหวัด
     const token = localStorage.getItem("token");
@@ -56,6 +55,9 @@ function MainAddPlaces() {
         open: false,
         message: "",
     });
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // "success" | "error" | "warning" | "info"
 
     useEffect(() => {
         const fetchData = async () => {
@@ -87,6 +89,9 @@ function MainAddPlaces() {
 
 
     const handleChange = (field) => (event) => {
+        console.log("field", field);
+        console.log("event.target.type", event.target.type);
+
         const value = event.target.type === "file"
             ? event.target.files[0]
             : event.target.value;
@@ -103,44 +108,112 @@ function MainAddPlaces() {
     const handleSwitchChange = (event) => {
         setForm((prev) => ({
             ...prev,
-            usage: event.target.checked ? "th" : "en",
+            language: event.target.checked ? "th" : "en",
         }));
+    };
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
     };
 
     const handleCancel = () => {
         // ล้างข้อมูลฟอร์ม
         setForm({
-            name: "",
-            // usage: "TH",
-            quantity: "",
-            bannerFile: null,
-            detailFile: null,
-            history: "",
-            activity: "",
-            expense: "",
-            tourControl: "",
-            food: "",
-            tourismSeason: "",
-            electricityUsage: "",
-            waterUsage: "",
-            garbageUsage: "",
-            waterTreatment: "",
-            cleaning: "",
-            tourismSystemChange: "",
-            contact: "",
-            address: "",
-            remark: "",
-            googleMap: "",
+            placeType: "",  // หมวดที่อยู่
+            attractionName: "",  // ชื่อสถานที่
+            language: "th",  // ภาษา
+            bannerImage: "",   // เลือกไฟล์รูป BANNER
+            detailedImage: "",   // เลือกไฟล์รูปละเอียด
+            historyDescription: "", // ประวัติความเป็นมา
+            activities: "", // กิจกรรม
+            cost: "", // ค่าใช้จ่าย
+            touristCapacity: "", // การรองรับนักท่องเที่ยว
+            openingHours: "", // เวลาทำการ
+            touristSeason: "", // ฤดูการท่องเที่ยว
+            electricityUsage: "", // การใช้ไฟฟ้า
+            waterUsage: "", // การใช้น้ำ
+            fuelUsage: "", // การใช้น้ำมัน
+            wastewaterManagement: "", // การจัดการน้ำและการเปลี่ยนถ่ายน้ำเสีย
+            wasteManagement: "", // การจัดการขยะ
+            ecoSystemChange: "", // การเปลี่ยนระบบของสถานที่ท่องเที่ยว
+            contactInfo: "", // ติดต่อสถานที่s
+            locationDescription: "", // ที่ตั้ง
+            googleMapCoordinates: "", // Google Map (latitude,longitude)
+            notes: "", // หมายเหตุ
+            // uid: "", // ไอดีผู้ลงข้อมูล
+            // did: "", // ไอดีจังหวัด
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("form", form);
+        const decoded = jwtDecode(token);
+        console.log("Token decoded:", decoded);
+        try {
+            const uid = decoded?.uid || decoded?.user_id || null;
+            const payload = {
+                ...form,
+                uid: parseInt(uid),
+            }
+            console.log("payload", payload);
+            console.log("form", form);
 
 
-        // เขียน logic บันทึกข้อมูลที่นี่
-        console.log(form);
+            // เขียน logic บันทึกข้อมูลที่นี่
+            console.log(form);
+            const response = await axios.post(
+                "http://localhost:8080/create_places",
+                payload,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                setSnackbarMessage("✅ ข้อมูลถูกบันทึกเรียบร้อยแล้ว!");
+                setSnackbarSeverity("success");
+                // เคลียร์ค่าฟอร์ม
+                // setRoute("");
+                setForm({
+                    placeType: "",  // หมวดที่อยู่
+                    attractionName: "",  // ชื่อสถานที่
+                    language: "th",  // ภาษา
+                    bannerImage: "",   // เลือกไฟล์รูป BANNER
+                    detailedImage: "",   // เลือกไฟล์รูปละเอียด
+                    historyDescription: "", // ประวัติความเป็นมา
+                    activities: "", // กิจกรรม
+                    cost: "", // ค่าใช้จ่าย
+                    touristCapacity: "", // การรองรับนักท่องเที่ยว
+                    openingHours: "", // เวลาทำการ
+                    touristSeason: "", // ฤดูการท่องเที่ยว
+                    electricityUsage: "", // การใช้ไฟฟ้า
+                    waterUsage: "", // การใช้น้ำ
+                    fuelUsage: "", // การใช้น้ำมัน
+                    wastewaterManagement: "", // การจัดการน้ำและการเปลี่ยนถ่ายน้ำเสีย
+                    wasteManagement: "", // การจัดการขยะ
+                    ecoSystemChange: "", // การเปลี่ยนระบบของสถานที่ท่องเที่ยว
+                    contactInfo: "", // ติดต่อสถานที่s
+                    locationDescription: "", // ที่ตั้ง
+                    googleMapCoordinates: "", // Google Map (latitude,longitude)
+                    notes: "", // หมายเหตุ
+                    // uid: "", // ไอดีผู้ลงข้อมูล
+                    // did: "", // ไอดีจังหวัด
+                });
+            } else {
+                setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
+                setSnackbarSeverity("error");
+            }
+        } catch (error) {
+            console.error("❗ Error ส่งข้อมูล:", error);
+            setSnackbarMessage("⚠️ เกิดข้อผิดพลาดขณะส่งข้อมูล");
+            setSnackbarSeverity("error");
+        } finally {
+            setSnackbarOpen(true);
+            setLoading(false); // 🔚 หยุดโหลด
+        }
     };
 
     return (
@@ -173,8 +246,8 @@ function MainAddPlaces() {
                         fullWidth
                         variant="filled"
                         label="ชื่อสถานที่"
-                        value={form.name}
-                        onChange={handleChange("name")}
+                        value={form.attractionName}
+                        onChange={handleChange("attractionName")}
                         InputProps={{
                             style: {
                                 color: "#33691e",
@@ -194,9 +267,9 @@ function MainAddPlaces() {
                         </InputLabel>
                         <Select
                             labelId="district-label"
-                            id="district-select"
-                            value={form.district}
-                            onChange={handleChange("district")}
+                            // id="district-select"
+                            value={form.did}
+                            onChange={handleChange("did")}
                             style={{ backgroundColor: "#dcedc8", color: "#33691e" }}
                         >
                             <MenuItem value="">
@@ -224,7 +297,7 @@ function MainAddPlaces() {
                         <FormControlLabel
                             control={
                                 <Switch
-                                    checked={form.usage === "th"}
+                                    checked={form.language === "th"}
                                     onChange={handleSwitchChange}
                                     sx={{
                                         "& .MuiSwitch-switchBase.Mui-checked": {
@@ -238,7 +311,7 @@ function MainAddPlaces() {
                             }
                             label={
                                 <Typography sx={{ color: "#33691e", fontWeight: "bold" }}>
-                                    ใช้สำหรับภาษา: {form.usage}
+                                    ใช้สำหรับภาษา: {form.language}
                                 </Typography>
                             }
                         />
@@ -249,11 +322,11 @@ function MainAddPlaces() {
                 <Grid item xs={12} sm={6}>
                     <Button variant="contained" component="label" color="success" fullWidth>
                         เลือกไฟล์ รูป banner
-                        <input type="file" hidden onChange={handleChange("bannerFile")} />
+                        <input type="file" hidden onChange={handleChange("bannerImage")} />
                     </Button>
-                    {form.bannerFile && (
+                    {form.bannerImage && (
                         <Typography variant="body2" sx={{ color: "#33691e", mt: 1 }}>
-                            {form.bannerFile.name}
+                            {form.bannerImage.name}
                         </Typography>
                     )}
                 </Grid>
@@ -261,11 +334,11 @@ function MainAddPlaces() {
                 <Grid item xs={12} sm={6}>
                     <Button variant="contained" component="label" color="success" fullWidth>
                         เลือกไฟล์ รูปละเอียด
-                        <input type="file" hidden onChange={handleChange("detailFile")} />
+                        <input type="file" hidden onChange={handleChange("detailedImage")} />
                     </Button>
-                    {form.detailFile && (
+                    {form.detailedImage && (
                         <Typography variant="body2" sx={{ color: "#33691e", mt: 1 }}>
-                            {form.detailFile.name}
+                            {form.detailedImage.name}
                         </Typography>
                     )}
                 </Grid>
@@ -284,8 +357,8 @@ function MainAddPlaces() {
                         label="ประวัติและความเป็นมา"
                         multiline
                         minRows={3}
-                        value={form.history}
-                        onChange={handleChange("history")}
+                        value={form.historyDescription}
+                        onChange={handleChange("historyDescription")}
                         InputProps={{
                             style: {
                                 color: "#33691e",
@@ -296,32 +369,13 @@ function MainAddPlaces() {
                     />
                 </Grid>
 
-                {/* <Grid item xs={12} sm={6}>
-                    <TextField
-                        fullWidth
-                        variant="filled"
-                        label="จำนวน"
-                        value={form.quantity}
-                        onChange={handleChange("quantity")}
-                        InputProps={{
-                            style: {
-                                color: "#33691e",
-                                backgroundColor: "#dcedc8",
-                            },
-                        }}
-                        InputLabelProps={{ style: { color: "#558b2f" } }}
-                    />
-                </Grid> */}
-
                 {[
-                    ["กิจกรรม", "activity"],
-                    ["ค่าใช้จ่าย", "expense"],
-                    ["การรองรับนักท่องเที่ยว", "quantity"],
-                    ["เวลาทำการ", "time"],
-                    ["ฤดูกาลท่องเที่ยว", "tourismSeason"],
-                    // ["อาหารการ", "food"],
+                    ["กิจกรรม", "activities"],
+                    ["ค่าใช้จ่าย", "cost"],
+                    ["การรองรับนักท่องเที่ยว", "touristCapacity"],
+                    ["เวลาทำการ", "openingHours"],
+                    ["ฤดูกาลท่องเที่ยว", "touristSeason"],
 
-                    
                 ].map(([label, key]) => (
                     <Grid item xs={12} sm={6} key={key}>
                         <TextField
@@ -349,14 +403,12 @@ function MainAddPlaces() {
                 </Grid>
 
                 {[
-                    // ["การควบคุมที่เกี่ยวกับท่องเที่ยว", "tourControl"],
                     ["การใช้ไฟฟ้า", "electricityUsage"],
                     ["การใช้น้ำ", "waterUsage"],
-                    ["การใช้น้ำมัน", "oil"],
-                    ["การจัดการน้ำและการเปลี่ยนถ่ายน้ำเสีย", "waterTreatment"],
-                    ["การจัดการขยะ", "garbageUsage"],
-                    // ["การทำความสะอาด", "cleaning"],
-                    ["การเปลี่ยนระบบของสถานที่ท่องเที่ยว", "tourismSystemChange"],
+                    ["การใช้น้ำมัน", "fuelUsage"],
+                    ["การจัดการน้ำและการเปลี่ยนถ่ายน้ำเสีย", "wastewaterManagement"],
+                    ["การจัดการขยะ", "wasteManagement"],
+                    ["การเปลี่ยนระบบของสถานที่ท่องเที่ยว", "ecoSystemChange"],
                 ].map(([label, key]) => (
                     <Grid item xs={12} sm={6} key={key}>
                         <TextField
@@ -384,8 +436,8 @@ function MainAddPlaces() {
                 </Grid>
 
                 {[
-                    ["ติดต่อสถานที่", "contact"],
-                    ["ที่ตั้ง", "address"],
+                    ["ติดต่อสถานที่", "contactInfo"],
+                    ["ที่ตั้ง", "locationDescription"],
                 ].map(([label, key]) => (
                     <Grid item xs={12} sm={6} key={key}>
                         <TextField
@@ -410,8 +462,8 @@ function MainAddPlaces() {
                         fullWidth
                         variant="filled"
                         label="Google Map (latitude,longitude)"
-                        value={form.googleMap}
-                        onChange={handleChange("googleMap")}
+                        value={form.googleMapCoordinates}
+                        onChange={handleChange("googleMapCoordinates")}
                         multiline
                         minRows={2}
                         placeholder="เช่น 16.76031995300121, 103.33303807244201"
@@ -429,8 +481,8 @@ function MainAddPlaces() {
                         fullWidth
                         variant="filled"
                         label="หมายเหตุ"
-                        value={form.remark}
-                        onChange={handleChange("remark")}
+                        value={form.notes}
+                        onChange={handleChange("notes")}
                         InputProps={{
                             style: {
                                 color: "#33691e",
@@ -464,6 +516,21 @@ function MainAddPlaces() {
                     sx={{ fontWeight: "bold" }}
                 >
                     {errorSnackbar.message}
+                </Alert>
+            </Snackbar>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={4000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={handleSnackbarClose}
+                    severity={snackbarSeverity}
+                    sx={{ width: "100%" }}
+                    variant="filled"
+                >
+                    {snackbarMessage}
                 </Alert>
             </Snackbar>
         </Box>
