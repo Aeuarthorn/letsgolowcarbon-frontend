@@ -8,15 +8,27 @@ import {
     FormControlLabel,
     Grid,
     Stack,
+    MenuItem,
+    Select,
+    FormControl,
+    Snackbar,
+    Alert,
+    InputLabel,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import axios from "axios";
 
 function MainAddPlaces() {
     const { placeType } = useParams();
-
     const [form, setForm] = useState({
-        name: "",
-        usage: "TH",
+        name: "",  // ชื่อสถานที่
+        // usage: "th",  // ภาษา
+        img_main: "",   // รูปหลักของสถานที่
+        history_and_background: "", // ประวัติความเป็นมา
+        detail: "", 
+
+
         quantity: "",
         bannerFile: null,
         detailFile: null,
@@ -24,7 +36,7 @@ function MainAddPlaces() {
         activity: "",
         expense: "",
         tourControl: "",
-        food: "",
+        // food: "",
         tourismSeason: "",
         electricityUsage: "",
         waterUsage: "",
@@ -37,6 +49,42 @@ function MainAddPlaces() {
         remark: "",
         googleMap: "",
     });
+    const [district, setDistrict] = useState([]); // จังหวัด
+    const token = localStorage.getItem("token");
+    const [loading, setLoading] = useState(false);
+    const [errorSnackbar, setErrorSnackbar] = useState({
+        open: false,
+        message: "",
+    });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!token) return;
+            setLoading(true);
+            try {
+                const resDistrict = await axios.get("http://localhost:8080/district", {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                console.log("resDistrict", resDistrict.data);
+                setDistrict(resDistrict.data);
+            } catch (err) {
+                console.error("Fetch district error:", err);
+                setErrorSnackbar({
+                    open: true,
+                    message: "โหลดข้อมูลล้มเหลว",
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [token]); // ✅ เพิ่ม token ใน dependency array
+
 
     const handleChange = (field) => (event) => {
         const value = event.target.type === "file"
@@ -45,10 +93,17 @@ function MainAddPlaces() {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
+    const handleChangedis = (field) => (event) => {
+        setForm((prev) => ({
+            ...prev,
+            [field]: event.target.value,
+        }));
+    };
+
     const handleSwitchChange = (event) => {
         setForm((prev) => ({
             ...prev,
-            usage: event.target.checked ? "TH" : "EN",
+            usage: event.target.checked ? "th" : "en",
         }));
     };
 
@@ -56,7 +111,7 @@ function MainAddPlaces() {
         // ล้างข้อมูลฟอร์ม
         setForm({
             name: "",
-            usage: "TH",
+            // usage: "TH",
             quantity: "",
             bannerFile: null,
             detailFile: null,
@@ -129,24 +184,33 @@ function MainAddPlaces() {
                         InputLabelProps={{ style: { color: "#558b2f" } }}
                     />
                 </Grid>
-
                 <Grid item xs={12} sm={6}>
-                    <TextField
-                        fullWidth
-                        variant="filled"
-                        label="จำนวน"
-                        value={form.quantity}
-                        onChange={handleChange("quantity")}
-                        InputProps={{
-                            style: {
-                                color: "#33691e",
-                                backgroundColor: "#dcedc8",
-                            },
-                        }}
-                        InputLabelProps={{ style: { color: "#558b2f" } }}
-                    />
+                    <FormControl fullWidth variant="filled">
+                        <InputLabel
+                            id="district-label"
+                            style={{ color: "#558b2f" }}
+                        >
+                            เลือกอำเภอ
+                        </InputLabel>
+                        <Select
+                            labelId="district-label"
+                            id="district-select"
+                            value={form.district}
+                            onChange={handleChange("district")}
+                            style={{ backgroundColor: "#dcedc8", color: "#33691e" }}
+                        >
+                            <MenuItem value="">
+                                <em>-- เลือกอำเภอ --</em>
+                            </MenuItem>
+                            {district?.length > 0 &&
+                                district.map((d) => (
+                                    <MenuItem key={d.did} value={d.did}>
+                                        {d.name}
+                                    </MenuItem>
+                                ))}
+                        </Select>
+                    </FormControl>
                 </Grid>
-
                 <Grid item xs={12}>
                     <Box
                         sx={{
@@ -160,7 +224,7 @@ function MainAddPlaces() {
                         <FormControlLabel
                             control={
                                 <Switch
-                                    checked={form.usage === "TH"}
+                                    checked={form.usage === "th"}
                                     onChange={handleSwitchChange}
                                     sx={{
                                         "& .MuiSwitch-switchBase.Mui-checked": {
@@ -232,11 +296,32 @@ function MainAddPlaces() {
                     />
                 </Grid>
 
+                {/* <Grid item xs={12} sm={6}>
+                    <TextField
+                        fullWidth
+                        variant="filled"
+                        label="จำนวน"
+                        value={form.quantity}
+                        onChange={handleChange("quantity")}
+                        InputProps={{
+                            style: {
+                                color: "#33691e",
+                                backgroundColor: "#dcedc8",
+                            },
+                        }}
+                        InputLabelProps={{ style: { color: "#558b2f" } }}
+                    />
+                </Grid> */}
+
                 {[
                     ["กิจกรรม", "activity"],
                     ["ค่าใช้จ่าย", "expense"],
-                    ["อาหารการ", "food"],
+                    ["การรองรับนักท่องเที่ยว", "quantity"],
+                    ["เวลาทำการ", "time"],
                     ["ฤดูกาลท่องเที่ยว", "tourismSeason"],
+                    // ["อาหารการ", "food"],
+
+                    
                 ].map(([label, key]) => (
                     <Grid item xs={12} sm={6} key={key}>
                         <TextField
@@ -264,12 +349,13 @@ function MainAddPlaces() {
                 </Grid>
 
                 {[
-                    ["การควบคุมที่เกี่ยวกับท่องเที่ยว", "tourControl"],
+                    // ["การควบคุมที่เกี่ยวกับท่องเที่ยว", "tourControl"],
                     ["การใช้ไฟฟ้า", "electricityUsage"],
                     ["การใช้น้ำ", "waterUsage"],
-                    ["การใช้ขยะ", "garbageUsage"],
+                    ["การใช้น้ำมัน", "oil"],
                     ["การจัดการน้ำและการเปลี่ยนถ่ายน้ำเสีย", "waterTreatment"],
-                    ["การทำความสะอาด", "cleaning"],
+                    ["การจัดการขยะ", "garbageUsage"],
+                    // ["การทำความสะอาด", "cleaning"],
                     ["การเปลี่ยนระบบของสถานที่ท่องเที่ยว", "tourismSystemChange"],
                 ].map(([label, key]) => (
                     <Grid item xs={12} sm={6} key={key}>
@@ -365,6 +451,21 @@ function MainAddPlaces() {
                     </Button>
                 </Grid>
             </Grid>
+            {/* // JSX ส่วนแสดง error Snackbar */}
+            <Snackbar
+                open={errorSnackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setErrorSnackbar({ open: false, message: "" })}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+                <Alert
+                    severity="error"
+                    variant="filled"
+                    sx={{ fontWeight: "bold" }}
+                >
+                    {errorSnackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
 
     );

@@ -10,6 +10,8 @@ import {
   Grid,
   InputLabel,
   FormControl,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -18,15 +20,18 @@ function MainAddRouteDetails() {
   const [route, setRoute] = useState("");
   const [dates, setDates] = useState("");
   const [sections, setSections] = useState({
-    morning: "",
-    midday: "",
-    afternoon: "",
-    evening: "",
+    morningDetails: "",
+    middayDetails: "",
+    afternoonDetails: "",
+    eveningDetails: "",
   });
   const [loading, setLoading] = useState(false);
   const [travelses, setTravelses] = useState([]); // 👉 ลิสต์ข้อมูลจาก API
   const token = localStorage.getItem("token");
   const hasFetched = useRef(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // "success" | "error" | "warning" | "info"
 
   const loadTravelses = async () => {
     try {
@@ -44,6 +49,10 @@ function MainAddRouteDetails() {
     }
   };
 
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   useEffect(() => {
     if (!hasFetched.current && token) {
       loadTravelses();
@@ -58,9 +67,18 @@ function MainAddRouteDetails() {
   const handleReset = () => {
     setRoute("");
     setDates("");
-    setSections({ morning: "", midday: "", afternoon: "", evening: "" });
+    setSections({
+      morningDetails: "",
+      middayDetails: "",
+      afternoonDetails: "",
+      eveningDetails: "",
+    });
     console.log("Form reset");
   };
+
+  console.log("route", route);
+  console.log("dates", dates);
+
 
   const handleSubmit = async () => {
     const payload = {
@@ -79,29 +97,47 @@ function MainAddRouteDetails() {
 
       const payload = {
         ...sections,
-        uid,
+        uid: parseInt(uid),
+        tid: route,
+        title: dates
         // name, // ✅ ใช้ค่าจาก localStorage
       };
 
       console.log(" Payload พร้อมส่ง:", payload);
 
-    //   const response = await axios.post(
-    //     "http://localhost:8080/create_travel_route",
-    //     payload,
-    //     {
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //         Authorization: `Bearer ${token}`,
-    //       },
-    //     }
-    //   );
+      const response = await axios.post(
+        "http://localhost:8080/create_travel_timeline",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    //   if (response.status === 200) {
-    //   } else {
-    //   }
+      if (response.status === 200) {
+        setSnackbarMessage("✅ ข้อมูลถูกบันทึกเรียบร้อยแล้ว!");
+        setSnackbarSeverity("success");
+        // เคลียร์ค่าฟอร์ม
+        // setRoute("");
+        setDates("");
+        setSections({
+          morningDetails: "",
+          middayDetails: "",
+          afternoonDetails: "",
+          eveningDetails: "",
+        });
+      } else {
+        setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
+        setSnackbarSeverity("error");
+      }
     } catch (error) {
       console.error("❗ Error ส่งข้อมูล:", error);
+      setSnackbarMessage("⚠️ เกิดข้อผิดพลาดขณะส่งข้อมูล");
+      setSnackbarSeverity("error");
     } finally {
+      setSnackbarOpen(true);
       setLoading(false); // 🔚 หยุดโหลด
     }
   };
@@ -180,10 +216,10 @@ function MainAddRouteDetails() {
         </Grid>
 
         {[
-          { label: "เช้า", key: "morning" },
-          { label: "กลางวัน", key: "midday" },
-          { label: "บ่าย", key: "afternoon" },
-          { label: "เย็น", key: "evening" },
+          { label: "เช้า", key: "morningDetails" },
+          { label: "กลางวัน", key: "middayDetails" },
+          { label: "บ่าย", key: "afternoonDetails" },
+          { label: "เย็น", key: "eveningDetails" },
         ].map(({ label, key }) => (
           <Grid item xs={12} key={key}>
             <Typography
@@ -249,6 +285,21 @@ function MainAddRouteDetails() {
           </Button>
         </Grid>
       </Grid>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+          variant="filled"
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 }
