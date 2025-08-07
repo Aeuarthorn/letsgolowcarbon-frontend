@@ -14,6 +14,8 @@ import {
     Snackbar,
     Alert,
     InputLabel,
+    Backdrop,
+    CircularProgress,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
@@ -22,12 +24,12 @@ import { jwtDecode } from "jwt-decode";
 
 function MainAddPlaces() {
     const { placeType } = useParams();
+    console.log("placeType", placeType);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [form, setForm] = useState({
-        placeType: "",  // หมวดที่อยู่
+        placeType: placeType,  // หมวดที่อยู่
         attractionName: "",  // ชื่อสถานที่
         language: "th",  // ภาษา
-        bannerImage: "",   // เลือกไฟล์รูป BANNER
-        detailedImage: "",   // เลือกไฟล์รูปละเอียด
         historyDescription: "", // ประวัติความเป็นมา
         activities: "", // กิจกรรม
         cost: "", // ค่าใช้จ่าย
@@ -49,6 +51,7 @@ function MainAddPlaces() {
 
     });
     const [district, setDistrict] = useState([]); // จังหวัด
+    const [images, setImages] = useState([]); // รูปภาพ
     const token = localStorage.getItem("token");
     const [loading, setLoading] = useState(false);
     const [errorSnackbar, setErrorSnackbar] = useState({
@@ -62,6 +65,7 @@ function MainAddPlaces() {
     useEffect(() => {
         const fetchData = async () => {
             if (!token) return;
+            setInitialLoading(true);
             setLoading(true);
             try {
                 const resDistrict = await axios.get("http://localhost:8080/district", {
@@ -81,27 +85,28 @@ function MainAddPlaces() {
                 });
             } finally {
                 setLoading(false);
+                setInitialLoading(false);
             }
         };
+        if (placeType) {
+            setForm((prevForm) => ({
+                ...prevForm,
+                placeType: placeType, // ตั้งค่า placeType เข้าฟอร์ม
+            }));
+        }
 
         fetchData();
-    }, [token]); // ✅ เพิ่ม token ใน dependency array
+    }, [token, placeType]); // ✅ เพิ่ม token ใน dependency array
 
+    console.log("images", images);
 
     const handleChange = (field) => (event) => {
-        console.log("field", field);
-        console.log("event.target.type", event.target.type);
-
-        const value = event.target.type === "file"
-            ? event.target.files[0]
-            : event.target.value;
-        setForm((prev) => ({ ...prev, [field]: value }));
-    };
-
-    const handleChangedis = (field) => (event) => {
+        const input = event.target;
+        console.log("input", input);
+        let value = input.value;
         setForm((prev) => ({
             ...prev,
-            [field]: event.target.value,
+            [field]: value,
         }));
     };
 
@@ -135,6 +140,7 @@ function MainAddPlaces() {
             fuelUsage: "", // การใช้น้ำมัน
             wastewaterManagement: "", // การจัดการน้ำและการเปลี่ยนถ่ายน้ำเสีย
             wasteManagement: "", // การจัดการขยะ
+            carFootprintPerDay: "", // คาร์ฟุตพริ้นท์/วัน
             ecoSystemChange: "", // การเปลี่ยนระบบของสถานที่ท่องเที่ยว
             contactInfo: "", // ติดต่อสถานที่s
             locationDescription: "", // ที่ตั้ง
@@ -145,75 +151,165 @@ function MainAddPlaces() {
         });
     };
 
+    // อัพโหลดรูปภาพ
+    const handleImageUpload = (e, type) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            // ลบ preview เก่าเพื่อป้องกัน memory leak
+            images
+                .filter((img) => img.type === type)
+                .forEach((img) => {
+                    if (img.preview) {
+                        URL.revokeObjectURL(img.preview);
+                    }
+                });
+
+            // สร้าง preview ใหม่
+            const newImages = files.map((file) => ({
+                type,
+                file,
+                name: file.name,
+                entityID: null,
+                preview: URL.createObjectURL(file),
+            }));
+
+            // รวมกับภาพประเภทอื่น
+            const otherImages = images.filter((img) => img.type !== type);
+            setImages([...otherImages, ...newImages]);
+        }
+    };
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const decoded = jwtDecode(token);
-        console.log("Token decoded:", decoded);
+        setLoading(true); // ✅ เริ่มโหลด
         try {
+            const decoded = jwtDecode(token);
             const uid = decoded?.uid || decoded?.user_id || null;
-            const payload = {
+            // STEP 1: สร้างสถานที่ (place)
+            const placePayload = {
                 ...form,
                 uid: parseInt(uid),
-            }
-            console.log("payload", payload);
-            console.log("form", form);
+                carFootprintPerDay: parseFloat(form.carFootprintPerDay),
+            };
+
+            const placeRes = await axios.post("http://localhost:8080/create_places", placePayload, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            console.log("placeRes", placeRes);
+
+            if (placeRes.status === 200 && placeRes.data?.id) {
+                // const newPlaceId = 1;
+                const newPlaceId = placeRes.data.id;
+                const formData = new FormData();
+                // STEP 2: เตรียมอัปโหลดภาพ (image & video)
+                if (Array.isArray(images)) {
+                    images.forEach((img, index) => {
+                        console.log("img++++", img);
+
+                        if (img.file instanceof File) {
+                            const file = img.file;
+                            const fileName = file.name;
+                            const extension = fileName.split('.').pop().toLowerCase();
+
+                            const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension);
+                            const isVideo = ['mp4', 'mov', 'avi', 'mkv'].includes(extension);
+                            const mediaType = isImage ? 'image' : isVideo ? 'video' : 'unknown';
+
+                            if (mediaType === 'unknown') return;
+
+                            console.log("mediaType", mediaType);
+                            console.log("img.type", img.type);
+                            console.log("placeType", placeType);
 
 
-            // เขียน logic บันทึกข้อมูลที่นี่
-            console.log(form);
-            const response = await axios.post(
-                "http://localhost:8080/create_places",
-                payload,
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
+                            formData.append("file", file);
+                            formData.append("media_type", mediaType);
+                            formData.append("type", img.type || 'default');
+                            formData.append("place_type", placeType);
+                            formData.append("ref_id", newPlaceId);         // <-- ID จากการสร้าง place
+                            formData.append("ref_name", 'place');
+                        }
+                    });
                 }
-            );
 
-            if (response.status === 200) {
-                setSnackbarMessage("✅ ข้อมูลถูกบันทึกเรียบร้อยแล้ว!");
-                setSnackbarSeverity("success");
-                // เคลียร์ค่าฟอร์ม
-                // setRoute("");
-                setForm({
-                    placeType: "",  // หมวดที่อยู่
-                    attractionName: "",  // ชื่อสถานที่
-                    language: "th",  // ภาษา
-                    bannerImage: "",   // เลือกไฟล์รูป BANNER
-                    detailedImage: "",   // เลือกไฟล์รูปละเอียด
-                    historyDescription: "", // ประวัติความเป็นมา
-                    activities: "", // กิจกรรม
-                    cost: "", // ค่าใช้จ่าย
-                    touristCapacity: "", // การรองรับนักท่องเที่ยว
-                    openingHours: "", // เวลาทำการ
-                    touristSeason: "", // ฤดูการท่องเที่ยว
-                    electricityUsage: "", // การใช้ไฟฟ้า
-                    waterUsage: "", // การใช้น้ำ
-                    fuelUsage: "", // การใช้น้ำมัน
-                    wastewaterManagement: "", // การจัดการน้ำและการเปลี่ยนถ่ายน้ำเสีย
-                    wasteManagement: "", // การจัดการขยะ
-                    ecoSystemChange: "", // การเปลี่ยนระบบของสถานที่ท่องเที่ยว
-                    contactInfo: "", // ติดต่อสถานที่s
-                    locationDescription: "", // ที่ตั้ง
-                    googleMapCoordinates: "", // Google Map (latitude,longitude)
-                    notes: "", // หมายเหตุ
-                    // uid: "", // ไอดีผู้ลงข้อมูล
-                    // did: "", // ไอดีจังหวัด
+                console.log("formData", formData);
+
+
+                const uploadRes = await axios.post("http://localhost:8080/upload_image", formData, {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // ❌ อย่าตั้ง Content-Type เอง
+                    },
                 });
+
+                console.log("uploadRes", uploadRes);
+                if (uploadRes.status === 200) {
+                    setSnackbarMessage("✅ ข้อมูลและรูปภาพถูกบันทึกเรียบร้อยแล้ว!");
+                    setSnackbarSeverity("success");
+                    // รีเซ็ตฟอร์ม
+                    setForm({
+                        attractionName: "",  // ชื่อสถานที่
+                        language: "th",  // ภาษา
+                        historyDescription: "", // ประวัติความเป็นมา
+                        activities: "", // กิจกรรม
+                        cost: "", // ค่าใช้จ่าย
+                        touristCapacity: "", // การรองรับนักท่องเที่ยว
+                        openingHours: "", // เวลาทำการ
+                        touristSeason: "", // ฤดูการท่องเที่ยว
+                        electricityUsage: "", // การใช้ไฟฟ้า
+                        waterUsage: "", // การใช้น้ำ
+                        fuelUsage: "", // การใช้น้ำมัน
+                        wastewaterManagement: "", // การจัดการน้ำและการเปลี่ยนถ่ายน้ำเสีย
+                        wasteManagement: "", // การจัดการขยะ
+                        carFootprintPerDay: "", // คาร์ฟุตพริ้นท์/วัน
+                        ecoSystemChange: "", // การเปลี่ยนระบบของสถานที่ท่องเที่ยว
+                        contactInfo: "", // ติดต่อสถานที่s
+                        locationDescription: "", // ที่ตั้ง
+                        googleMapCoordinates: "", // Google Map (latitude,longitude)
+                        notes: "", // หมายเหตุ
+                    });
+                    setImages([]);
+                } else {
+                    setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
+                    setSnackbarSeverity("error");
+                    throw new Error("Upload failed");
+                }
             } else {
-                setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
-                setSnackbarSeverity("error");
+                throw new Error("Place creation failed");
             }
         } catch (error) {
             console.error("❗ Error ส่งข้อมูล:", error);
             setSnackbarMessage("⚠️ เกิดข้อผิดพลาดขณะส่งข้อมูล");
             setSnackbarSeverity("error");
         } finally {
+            setLoading(false); // ✅ หยุดโหลดเมื่อเสร็จ
             setSnackbarOpen(true);
             setLoading(false); // 🔚 หยุดโหลด
         }
+    };
+
+    const placeTypeLabels = {
+        tourist_attraction: "สถานที่ท่องเที่ยว",
+        hotel: "ที่พัก",
+        restaurant: "ร้านอาหาร",
+        souvenir: "ร้านของที่ระลึก",
+        community_product: "ผลิตภัณฑ์ชุมชน",
+    };
+    // ลบรูปภาพ
+    const handleRemoveImage = (indexToRemove, type) => {
+        const updatedImages = images
+            .filter((img, index) => !(index === indexToRemove && img.type === type));
+
+        // เคลียร์ memory
+        const removedImg = images.find((img, index) => index === indexToRemove && img.type === type);
+        if (removedImg?.preview) {
+            URL.revokeObjectURL(removedImg.preview);
+        }
+
+        setImages(updatedImages);
     };
 
     return (
@@ -229,14 +325,23 @@ function MainAddPlaces() {
             component="form"
             onSubmit={handleSubmit}
         >
-            <Typography variant="h6" gutterBottom>
+            {loading && (
+                <div className="loading-overlay">
+                    <div className="spinner"></div>
+                </div>
+            )}
+
+            {/* <Typography variant="h6" gutterBottom>
                 เพิ่ม: {placeType.replaceAll("_", " ")}
+            </Typography> */}
+            <Typography variant="h6" gutterBottom sx={{ textAlign: 'center', fontWeight: "bold" }}>
+                {placeTypeLabels[placeType] || placeType.replaceAll("_", " ")}
             </Typography>
 
             <Grid container spacing={2}>
                 {/* ข้อมูลทั่วไป */}
                 <Grid item xs={12}>
-                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
                         🗺️ ข้อมูลทั่วไป
                     </Typography>
                 </Grid>
@@ -319,33 +424,74 @@ function MainAddPlaces() {
                 </Grid>
 
                 {/* ไฟล์ */}
-                <Grid item xs={12} sm={6}>
-                    <Button variant="contained" component="label" color="success" fullWidth>
-                        เลือกไฟล์ รูป banner
-                        <input type="file" hidden onChange={handleChange("bannerImage")} />
-                    </Button>
-                    {form.bannerImage && (
-                        <Typography variant="body2" sx={{ color: "#33691e", mt: 1 }}>
-                            {form.bannerImage.name}
-                        </Typography>
-                    )}
-                </Grid>
-
+                {/* Banner Place (1 รูป) */}
                 <Grid item xs={12} sm={6}>
                     <Button variant="contained" component="label" color="success" fullWidth>
                         เลือกไฟล์ รูปละเอียด
-                        <input type="file" hidden onChange={handleChange("detailedImage")} />
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            hidden
+                            onChange={(e) => handleImageUpload(e, "banner_place")}
+                        />
                     </Button>
-                    {form.detailedImage && (
-                        <Typography variant="body2" sx={{ color: "#33691e", mt: 1 }}>
-                            {form.detailedImage.name}
-                        </Typography>
-                    )}
+
+
+                    {/* แสดง preview banner_place */}
+                    <Box sx={{ mt: 1 }}>
+                        {images
+                            .filter((img) => img.type === "banner_place")
+                            .map((img, index) => (
+                                <Box key={index} sx={{ mb: 1 }}>
+                                    <img
+                                        src={img.preview}
+                                        alt={`banner_place preview ${index}`}
+                                        style={{ maxWidth: "100%", maxHeight: 150 }}
+                                    />
+                                    <Typography variant="body2" sx={{ color: "#33691e" }}>
+                                        {img.name}
+                                    </Typography>
+                                </Box>
+                            ))}
+                    </Box>
+                </Grid>
+
+                {/* Detailed Images (หลายรูป) */}
+                <Grid item xs={12} sm={6}>
+                    <Button variant="contained" component="label" color="success" fullWidth>
+                        เลือกไฟล์ รูปละเอียด
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            hidden
+                            onChange={(e) => handleImageUpload(e, "img_detail_place")}
+                        />
+                    </Button>
+
+                    {/* แสดง preview หลายภาพ พร้อมปุ่มลบ */}
+                    <Box sx={{ mt: 1 }}>
+                        {images
+                            .filter((img) => img.type === "img_detail_place")
+                            .map((img, index) => (
+                                <Box key={index} sx={{ mb: 1 }}>
+                                    <img
+                                        src={img.preview}
+                                        alt={`img_detail_place preview ${index}`}
+                                        style={{ maxWidth: "100%", maxHeight: 150 }}
+                                    />
+                                    <Typography variant="body2" sx={{ color: "#33691e" }}>
+                                        {img.name}
+                                    </Typography>
+                                </Box>
+                            ))}
+                    </Box>
                 </Grid>
 
                 {/* รายละเอียด */}
                 <Grid item xs={12}>
-                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
                         📝 รายละเอียด
                     </Typography>
                 </Grid>
@@ -375,6 +521,7 @@ function MainAddPlaces() {
                     ["การรองรับนักท่องเที่ยว", "touristCapacity"],
                     ["เวลาทำการ", "openingHours"],
                     ["ฤดูกาลท่องเที่ยว", "touristSeason"],
+                    ["คาร์ฟุตพริ้นท์/วัน", "carFootprintPerDay"],
 
                 ].map(([label, key]) => (
                     <Grid item xs={12} sm={6} key={key}>
@@ -397,7 +544,7 @@ function MainAddPlaces() {
 
                 {/* ความยั่งยืน */}
                 <Grid item xs={12}>
-                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
                         🌱 ความยั่งยืน & สิ่งแวดล้อม
                     </Typography>
                 </Grid>
@@ -430,7 +577,7 @@ function MainAddPlaces() {
 
                 {/* ติดต่อ */}
                 <Grid item xs={12}>
-                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
                         📞 การติดต่อและแผนที่
                     </Typography>
                 </Grid>
@@ -498,7 +645,7 @@ function MainAddPlaces() {
                     <Button variant="contained" color="error" style={{ color: 'white' }} onClick={handleCancel}>
                         ยกเลิก
                     </Button>
-                    <Button variant="contained" color="success" type="submit">
+                    <Button variant="contained" color="success" type="submit" disabled={loading}>
                         บันทึก
                     </Button>
                 </Grid>
@@ -533,6 +680,12 @@ function MainAddPlaces() {
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
+            <Backdrop
+                sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={initialLoading}
+            >
+                <CircularProgress    color="inherit" />
+            </Backdrop>
         </Box>
 
     );

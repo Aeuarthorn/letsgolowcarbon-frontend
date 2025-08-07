@@ -57,6 +57,7 @@
     "recharts": "^2.6.2",
     "slick-carousel": "^1.8.1",
     "styled-components": "^5.3.10",
+    "swiper": "^11.2.10",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

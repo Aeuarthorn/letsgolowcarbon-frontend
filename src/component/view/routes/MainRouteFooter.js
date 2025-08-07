@@ -22,18 +22,18 @@ function MainRouteFooter() {
 
 
     const logos = [
-        { src: "img-web/logo-kku.png", link: "https://example.com/ในเมือง" },
-        { src: "img-web/logo-kkbs.png", link: "https://example.com/ภูผาม่าน" },
-        { src: "img-web/logo-captour.png", link: "https://example.com/อุบลรัตน์" },
-        { src: "img-web/logo-kkuttravel.png", link: "https://example.com/อุบลรัตน์" },
-        { src: "img-web/logo.png", link: "https://example.com/อุบลรัตน์" },
+        { src: "/logo-kku.png", link: "https://www.kku.ac.th/" },
+        { src: "/logo-kkbs.png", link: "https://kkbs.kku.ac.th/" },
+        { src: "/logo-captour.png", link: "https://kkbs.kku.ac.th/?lang=en" },
+        { src: "/logo-kkuttravel.png", link: "https://kkbs.kku.ac.th/web/page-tour.php" },
+        { src: "/logo.png", link: "https://example.com" },
     ];
     const socialLinks = [
-        { icon: "img-web/instagram.png", },
-        { icon: "img-web/facebook.png" },
-        { icon: "img-web/line.png" },
-        { icon: "img-web/tik-tok.png" },
-        { icon: "img-web/youtube.png" },
+        { icon: "/instagram.png", },
+        { icon: "/facebook.png" },
+        { icon: "/line.png" },
+        { icon: "/tik-tok.png" },
+        { icon: "/youtube.png" },
     ];
     return (
         <ThemeProvider
@@ -53,7 +53,7 @@ function MainRouteFooter() {
                         display="flex"
                         justifyContent="center"
                         gap={2}
-                        mt={4}
+                        mt={2}
                         flexWrap={{ xs: 'wrap', sm: 'nowrap' }}
 
                     >

@@ -192,11 +192,11 @@ export default function HeadPage({
     //   label: t("login"),
     //   icon: <ContactMailIcon fontSize="small" />,
     // },
-    {
-      type: "signin",
-      label: t("signin"),
-      icon: <ContactMailIcon fontSize="small" />,
-    },
+    // {
+    //   type: "signin",
+    //   label: t("signin"),
+    //   icon: <ContactMailIcon fontSize="small" />,
+    // },
     // { type: 'roles', label: t('role'), icon: <ContactMailIcon fontSize="small" /> },
   ];
 
@@ -519,7 +519,7 @@ export default function HeadPage({
                         endIcon={<KeyboardArrowDownIcon fontSize="small" />}
                       >
                         {typeof role === "string" &&
-                        ["guest", "admin", "user"].includes(role)
+                          ["guest", "admin", "user"].includes(role)
                           ? t(role)
                           : t("guest")}
                       </Button>
@@ -537,7 +537,7 @@ export default function HeadPage({
                           <LoginIcon fontSize="small" sx={{ mr: 1 }} />
                           {t("login")}
                         </MenuItem>
-                         <MenuItem
+                        <MenuItem
                           onClick={() => {
                             navigate("/signup");
                             handleLoginMenuClose();

@@ -10,6 +10,9 @@ import MainAddRouteDetails from "../middles/MainAddRouteDetails";
 import MaiAddFormOfTravel from "../middles/MaiAddFormOfTravel";
 import MainAddDistrict from "../middles/MainAddDistrict";
 import MainAddLanguages from "../middles/MainAddLanguages";
+import FuelTable from "../middles/FuelTable";
+import MainAddRouteFrom from "../middles/MainAddRouteFrom";
+import MainAddVehicles from "../middles/MainAddVehicles";
 
 
 const drawerWidth = 260;
@@ -53,6 +56,15 @@ function MainAdmin({ screenWidth, defaultTheme }) {
       case "addLanguage":
         navigate("/admin/add/addLanguage");
         break;
+      case "addFuel":
+        navigate("/admin/add/addFuel");
+        break;
+      case "addvehicleEfficiency":
+        navigate("/admin/add/addvehicleEfficiency");
+        break;
+      case "addtravelDataWithVehicles":
+        navigate("/admin/add/addtravelDataWithVehicles");
+        break;
       default:
         break;
     }
@@ -71,6 +83,9 @@ function MainAdmin({ screenWidth, defaultTheme }) {
           <Route path="/add/form/addtraveltype" element={<MaiAddFormOfTravel />} />
           <Route path="/add/district" element={<MainAddDistrict />} />
           <Route path="/add/addLanguage" element={<MainAddLanguages />} />
+          <Route path="/add/addFuel" element={<FuelTable />} />
+          {/* <Route path="/add/addvehicleEfficiency" element={<MainAddVehicles />} /> */}
+          <Route path="/add/addtravelDataWithVehicles" element={<MainAddRouteFrom />} />
           <Route path="/" element={<AdminDashboard />} /> {/* 👈 default dashboard */}
           <Route path="*" element={<h2 style={{ marginTop: 20 }}>ไม่พบหน้านี้</h2>} />
         </Routes>

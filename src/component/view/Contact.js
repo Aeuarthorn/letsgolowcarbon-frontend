@@ -4,18 +4,18 @@ import { Link as RouterLink } from 'react-router-dom'; // ใช้สำหร�
 import { useTranslation } from 'react-i18next';
 
 const logos = [
-  { src: "img-web/logo-kku.png", link: "https://example.com/ในเมือง" },
-  { src: "img-web/logo-kkbs.png", link: "https://example.com/ภูผาม่าน" },
-  { src: "img-web/logo-captour.png", link: "https://example.com/อุบลรัตน์" },
-  { src: "img-web/logo-kkuttravel.png", link: "https://example.com/อุบลรัตน์" },
-  { src: "img-web/logo.png", link: "https://example.com/อุบลรัตน์" },
+  { src: "/logo-kku.png", link: "https://example.com/ในเมือง" },
+  { src: "/logo-kkbs.png", link: "https://example.com/ภูผาม่าน" },
+  { src: "/logo-captour.png", link: "https://example.com/อุบลรัตน์" },
+  { src: "/logo-kkuttravel.png", link: "https://example.com/อุบลรัตน์" },
+  { src: "/logo.png", link: "https://example.com/อุบลรัตน์" },
 ];
 const socialLinks = [
-  { icon: "img-web/instagram.png", label: "Let’s Go Low Carbon" },
-  { icon: "img-web/facebook.png", label: "Let’s Go Low Carbon" },
-  { icon: "img-web/line.png", label: "@LetsGoLowCarbon" },
-  { icon: "img-web/tik-tok.png", label: "letsgolowcarbon" },
-  { icon: "img-web/youtube.png", label: "Let’s go Low carbon" },
+  { icon: "/instagram.png", label: "Let’s Go Low Carbon" },
+  { icon: "/facebook.png", label: "Let’s Go Low Carbon" },
+  { icon: "/line.png", label: "@LetsGoLowCarbon" },
+  { icon: "/tik-tok.png", label: "letsgolowcarbon" },
+  { icon: "/youtube.png", label: "Let’s go Low carbon" },
 ];
 
 function Contact({ screenWidth, defaultTheme }) {

@@ -284,7 +284,7 @@ const MainAddRouteMap = () => {
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
         <FormControl sx={{ minWidth: 250 }} size="medium">
-          <InputLabel id="travelses-select-label">อำเภอ</InputLabel>
+          <InputLabel id="travelses-select-label">เส้นทาง</InputLabel>
           <Select
             name="travelses-select"
             labelId="travelses-select-label"

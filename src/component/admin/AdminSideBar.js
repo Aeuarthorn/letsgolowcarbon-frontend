@@ -119,14 +119,30 @@ function AdminSideBar({ selected, onSelect }) {
                                     <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
                                     <ListItemText primary="เพิ่มชื่ออำเภอ" />
                                 </ListItem>
-
                             </List>
                             <List dense>
                                 <ListItem button onClick={() => onSelect("addLanguage")}>
                                     <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
                                     <ListItemText primary="เพิ่มภาษา" />
                                 </ListItem>
-
+                            </List>
+                            <List dense>
+                                <ListItem button onClick={() => onSelect("addFuel")}>
+                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                    <ListItemText primary="เพิ่มน้ำมัน" />
+                                </ListItem>
+                            </List>
+                            {/* <List dense>
+                                <ListItem button onClick={() => onSelect("addvehicleEfficiency")}>
+                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                    <ListItemText primary="เพิ่มยานพาหนะ" />
+                                </ListItem>
+                            </List> */}
+                            <List dense>
+                                <ListItem button onClick={() => onSelect("addtravelDataWithVehicles")}>
+                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                    <ListItemText primary="เพิ่มข้อมูลการเดินทางแบบใหม่" />
+                                </ListItem>
                             </List>
                         </AccordionDetails>
                     </Accordion>

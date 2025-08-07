@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { Trans } from 'react-i18next';
 import { useTranslation } from 'react-i18next';
+import MainRouteFooter from './routes/MainRouteFooter';
 
 function About({ screenWidth, defaultTheme }) {
     const { t } = useTranslation();
@@ -85,8 +86,24 @@ function About({ screenWidth, defaultTheme }) {
                     </Typography>
                 </Box>
             </Box>
-
-            <Box
+            <Box // 3
+                component="main"
+                sx={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                    // backgroundColor: '#77B349', // เพิ่มพื้นหลังสีดำโปร่งแสง
+                    fontSize: { xs: '0.8rem', sm: '1rem' }, // ปรับขนาดตัวอักษรให้เล็กลงสำหรับมือถือ
+                    display: 'flex',
+                    flexDirection: 'column', // ✅ เรียงแนวตั้ง
+                    gap: 2, // เพิ่มระยะห่างระหว่าง item ในแนวตั้ง
+                }}
+            >
+                <MainRouteFooter screenWidth={screenWidth} />
+            </Box>
+            {/* <Box
                 sx={{
                     maxWidth: { xs: '95%', sm: 800 },
                     mx: 'auto',
@@ -195,7 +212,7 @@ function About({ screenWidth, defaultTheme }) {
                         </Stack>
                     </Box>
                 </Stack>
-            </Box>
+            </Box> */}
         </ThemeProvider>
     )
 }

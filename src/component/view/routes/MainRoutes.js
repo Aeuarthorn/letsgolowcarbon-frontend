@@ -1,71 +1,288 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { Link, Link as RouterLink } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box, Typography, Container, Card, Stack, Button, Avatar, Grid, Table, ToggleButton, ToggleButtonGroup, TableHead, TableRow, TableCell, TableBody, CardContent, Divider } from '@mui/material';
-import { AccessTime, WbSunny, DarkMode, Person } from '@mui/icons-material';
-import { fuelData } from '../data/Data';
 import {
-    MapContainer,
-    TileLayer,
+    Container,
+    Grid,
+    Card,
+    CardContent,
+    Typography,
+    CircularProgress,
+    ToggleButton,
+    ToggleButtonGroup,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    Box,
+    Stack,
+    Divider,
+    CardMedia,
+} from '@mui/material';
+import {
+    GoogleMap,
+    LoadScript,
     Marker,
-    Popup,
     Polyline,
-    useMapEvents,
-} from "react-leaflet";
-import { getDistance } from "geolib";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-// import { createNumberedIcon, LocationMarker, LocationMarkerView } from '../../middles/Map';
-import { fuelDataTable, vehicleTypes } from '../../middles/MockData';
+    useJsApiLoader,
+} from "@react-google-maps/api";
+import MainRouteFooter from './MainRouteFooter';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import { AccessTime, DarkMode, Person, WbSunny } from '@mui/icons-material';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import TravelPlanner from './TravelPlanner';
+import axios from 'axios';
+import { useCallback } from 'react';
 
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl:
-        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+const mapContainerStyle = { width: "100%", height: "500px" };
+const defaultCenter = { lat: 16.47, lng: 102.81 }; // ขอนแก่น
+// 16.432949297459142, 102.82441869458061 ขอนแก่น
+const translations = {
+    vechicle_1: 'รถจักรยานยนต์',
+    vechicle_2: 'รถยนต์',
+    vechicle_3: 'รถตู้',
+    distance_title: 'ระยะทางรวม',
+    carbon_footprint: 'Carbon Footprint',
+    km: 'กม.',
+    loading_route: 'ข้อมูลการเดินทาง',
+};
 
 function MainRoutes() {
+    const BASE_URL = "http://localhost:8080";
     const { slug, id } = useParams();
     const { t } = useTranslation();
     const [points, setPoints] = useState([]);
-    const [routePolyline, setRoutePolyline] = useState([]);
+    const [vihicleWithRoute, setVihicleWithRoute] = useState([]);
+    const [reduceDsitance, setReduceDsitance] = useState(0);
+    const [selectedVehicle, setSelectedVehicle] = useState('motorcycle');
+    const [selectedRoutes, setselectedRoutes] = useState('motorcycle');
+    const [loading, setLoading] = useState(false);
+    const [totalCO2E, setTotalCO2E] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const [mapReady, setMapReady] = useState(false);
+    const [images, setImages] = useState([]); // รูปภาพ
 
-
+    const [routePath, setRoutePath] = useState([]); // เก็บเส้นทางที่ได้จาก Directions API
+    const mapRef = useRef(null);
     const routeKey = `route_${slug}`;
     const allRoutes = t(routeKey, { returnObjects: true });
 
+    const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    const { isLoaded, loadError } = useJsApiLoader({
+        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    });
     const selectedRoute = Array.isArray(allRoutes)
         ? allRoutes.find((r) => String(r.id) === id)
         : null;
 
-    const [selectedVehicle, setSelectedVehicle] = useState(vehicleTypes.find(v => v.type === 'car'));
 
-    const distance = selectedRoute.distance || 0;
 
-    const { fuelUsed, carbonFootprint } = useMemo(() => {
-        if (!selectedVehicle || !selectedVehicle.efficiency || !selectedVehicle.co2PerLiter) return {
-            fuelUsed: 0,
-            carbonFootprint: 0,
-        };
+    function calculateCO2E(vechicleType, fuelType, distance) {
+        // วิธีหาน้ำมันที่ใช้
+        // ระยะทาง ÷ 40(มอไซค์)/15(รถยนต์)/10(รถตู้) จากนั้น x ด้วย 1000(จำนวนมิลลิลิตร​) = จะได้ปริมาณน้ำมันที่ใช้ในการเดินทาง มีหน่วยเป็นมิลลิลิตร
+        // const oilUsed = ((distance / fixedVechicleTypeValue) * 1000);
+        var findFuelUsed = calculateOilUsage(distance, vechicleType);
+        var co2ePerLiter = getCO2ePerLiter(fuelType);
+        console.log("co2ePerLiter", co2ePerLiter);
+        console.log("findFuelUsed", findFuelUsed);
+        var co2e = (findFuelUsed * co2ePerLiter)
+        var cal = co2e / 1000; // คำนวณ CO2e (kg)
+        var cal = Math.floor(cal * 100) / 100;
+        console.log("cal", cal);
+        return cal.toFixed(2);
+        // return co2e; // คืนค่าเป็น float (ไม่ปัดเศษ)
+    }
+    function calculateOilUsage(distance, vechicleType) {
+        // - วิธีหาน้ำมันที่ใช้ -
+        //     ระยะทาง ÷ 40(มอไซค์) / 15(รถยนต์) / 10(รถตู้) จากนั้น x ด้วย 1000(จำนวนมิลลิลิตร) = จะได้ปริมาณน้ำมันที่ใช้ในการเดินทาง มีหน่วยเป็นมิลลิลิตร
+        let efficiencyKmPerL;
+        if (vechicleType === "motorcycle") {
+            efficiencyKmPerL = 40;
+        } else if (vechicleType === "car") {
+            efficiencyKmPerL = 15;
+        } else if (vechicleType === "van") {
+            efficiencyKmPerL = 10;
+        } else {
+            efficiencyKmPerL = 1; // fallback กันหารศูนย์
+        }
+        console.log("efficiencyKmPerL", efficiencyKmPerL);
+        console.log("(distance / efficiencyKmPerL) * 1000", (distance / efficiencyKmPerL) * 1000);
 
-        const fuel = distance / selectedVehicle.efficiency;
-        const carbon = fuel * selectedVehicle.co2PerLiter;
+        return (distance / efficiencyKmPerL) * 1000; // mL
+    }
+    function getCO2ePerLiter(fuelType) {
+        // สามารถใช้เงื่อนไขเพื่อตรวจสอบประเภทของน้ำมันหรือเชื้อเพลิงและคืนค่าที่เหมาะสม
+        if (fuelType === 'Gasoline') {
+            return 2.2719; // ปริมาณ CO2e ที่เกิดขึ้นต่อลิตรสำหรับเบนซิน  2.2719(ในกรณีที่ใช้น้ำมันแก๊ส​โซฮอล์​ เช่น มอไซค์,รถยนต์) / 2
+        } else if (fuelType === 'Diesel') {
+            return 2.7406; // ปริมาณ CO2e ที่เกิดขึ้นต่อลิตรสำหรับดีเซล 2.7406(ในกรณีที่ใช้น้ำมันดีเซล เช่น รถตู้) 
+        } else {
+            return 1; // หากไม่รู้จักประเภทน้ำมันหรือเชื้อเพลิงอื่น ๆ คืนค่า 0
+        }
+    }
 
-        return {
-            fuelUsed: fuel,
-            carbonFootprint: carbon,
-        };
-    }, [selectedVehicle, distance]);
+    // โหลดข้อมูลเส้นทางรถ (โหลดรอบเดียวตอน mount หรือเมื่อ id, token เปลี่ยน)
+    useEffect(() => {
+        setIsLoading(true);
+        Promise.all([
+            axios.post("http://localhost:8080/vehicle_with_routes_guest", { tid: parseInt(id) }),
+            axios.post("http://localhost:8080/travel_route_guest", { tid: parseInt(id) }),
+            axios.post("http://localhost:8080/travel_route_details_guest", { tid: parseInt(id) }),
+        ])
+            .then(([vehicleRes, routeRes, routeDetails]) => {
+                console.log("routeDetails?.data ", routeDetails?.data);
+                // console.log("vehicleRes?.data ", vehicleRes?.data);
+                // console.log("routeRes.data ", routeRes.data);
+                setVihicleWithRoute(vehicleRes?.data || []);
+                setImages(routeDetails?.data?.ImageRoute || []);
+                setselectedRoutes(routeDetails?.data || []);
+                const fixedPoints = routeRes?.data
+                    ?.map((p) => {
+                        const lat = parseFloat(p.lat);
+                        const lng = parseFloat(p.lng);
 
-    console.log(" distance:", distance);
-    console.log("selected vehicle:", selectedVehicle);
-    console.log("fuel used:", fuelUsed);
-    console.log("carbon footprint:", carbonFootprint);
+                        if (isNaN(lat) || isNaN(lng)) {
+                            console.warn("❌ พิกัดไม่ถูกต้อง ถูกละไว้:", p);
+                            return null;
+                        }
 
+                        return {
+                            lat,
+                            lng,
+                            name: p.name || "", // fallback ถ้า name หาย
+                        };
+                    })
+                    .filter((p) => p !== null); // ลบจุดที่ไม่ valid ออก
+
+                if (isLoaded && fixedPoints.length > 0) {
+
+                    fetchRoute(fixedPoints);
+                    setMapReady(true);
+                } else {
+                    console.warn("⚠️ ไม่มีจุดที่ valid สำหรับแสดงบนแผนที่");
+                }
+                // setPoints(routeRes.data || []);
+                console.log("✅ โหลดทั้งสองข้อมูลสำเร็จ");
+            })
+            .catch((err) => {
+                console.error("❌ โหลดข้อมูลล้มเหลว:", err);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    }, [id, isLoaded]);
+
+    // คำนวณ CO2 และระยะทางรวม — ทำเมื่อเลือก Vehicle หรือข้อมูลถูกโหลดเสร็จ
+    useEffect(() => {
+        if (vihicleWithRoute && selectedVehicle) {
+            setLoading(true);
+            const distanceSum = vihicleWithRoute.reduce((acc, curr) => acc + curr.distance, 0);
+            setReduceDsitance(distanceSum);
+
+            const fuelType = (selectedVehicle === "motorcycle" || selectedVehicle === "car") ? 'Gasoline' : 'Diesel';
+            const co2e = calculateCO2E(selectedVehicle, fuelType, distanceSum);
+            setTotalCO2E(co2e);
+            setLoading(false);
+        }
+
+    }, [selectedVehicle, vihicleWithRoute]);
+
+    // const loadVihicleWithRoute = useCallback(async () => {
+    //     setIsLoading(true);
+    //     try {
+    //         const response = await axios.post("http://localhost:8080/vehicle_with_routes_guest", {
+    //             tid: parseInt(id)
+    //         });
+
+    //         console.log("✅ ดึงข้อมูลสำเร็จ:", response.data);
+    //         setVihicleWithRoute(response.data || []);
+    //     } catch (error) {
+    //         console.error("❌ ดึงข้อมูลล้มเหลว:", error);
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // }, [id, token]);
+
+    // const loadTravelRoute = useCallback(async () => {
+    //     setIsLoading(true);
+    //     try {
+    //         const response = await axios.post("http://localhost:8080/travel_route_guest", {
+    //             tid: parseInt(id)
+    //         });
+
+    //         console.log("✅ ดึงข้อมูล Map สำเร็จ:", response.data);
+    //         setPoints(response.data || []);
+    //     } catch (error) {
+    //         console.error("❌ ดึงข้อมูลล้มเหลว:", error);
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // }, [id, token]);
+
+
+
+    const handleVehicleChange = (event, newVehicle) => {
+        console.log("newVehicle", newVehicle);
+
+        if (newVehicle !== null) {
+            setSelectedVehicle(newVehicle);
+        }
+    };
+
+    // ฟังก์ชันเรียก Directions API และตั้งค่าเส้นทาง
+    const fetchRoute = async (points) => {
+        if (points.length < 2) {
+            setRoutePath([]);
+            return;
+        }
+
+        // const directionsService = new window.google.maps.DirectionsService();
+        const directionsService = new window.google.maps.DirectionsService();
+
+
+        const origin = points[0];
+        const destination = points[points.length - 1];
+        const waypoints = points.slice(1, points.length - 1).map((p) => ({
+            location: { lat: p.lat, lng: p.lng },
+            stopover: true,
+        }));
+
+        directionsService?.route(
+            {
+                origin,
+                destination,
+                waypoints,
+                travelMode: window.google.maps.TravelMode.DRIVING, // หรือ WALKING, BICYCLING ตามต้องการ
+                optimizeWaypoints: true, // เพื่อให้ Google หาทางที่ใกล้ที่สุด
+            },
+            (result, status) => {
+                if (status === window.google.maps.DirectionsStatus.OK) {
+                    const path = [];
+
+                    // ดึง path ทุกจุดจาก legs ของ route
+                    result.routes[0].legs.forEach((leg) => {
+                        leg.steps.forEach((step) => {
+                            step.path.forEach((latlng) => {
+                                path.push({ lat: latlng.lat(), lng: latlng.lng() });
+                            });
+                        });
+                    });
+
+                    setRoutePath(path);
+                    setPoints(points);
+                } else {
+                    console.error("Directions request failed due to " + status);
+                    setRoutePath([]);
+                }
+            }
+        );
+    };
 
 
     if (!selectedRoute) {
@@ -76,455 +293,212 @@ function MainRoutes() {
         );
     }
 
-    const handleRemovePoint = (index) => {
-        const newPoints = [...points];
-        newPoints.splice(index, 1);
-        setPoints(newPoints);
-        setRoutePolyline([]); // reset route
-    };
-
-    const logos = [
-        { src: "/img-web/logo-kku.png", link: "https://example.com/ในเมือง" },
-        { src: "/img-web/logo-kkbs.png", link: "https://example.com/ภูผาม่าน" },
-        { src: "/img-web/logo-captour.png", link: "https://example.com/อุบลรัตน์" },
-        { src: "/img-web/logo-kkuttravel.png", link: "https://example.com/อุบลรัตน์" },
-        { src: "/img-web/logo.png", link: "https://example.com/อุบลรัตน์" },
-    ];
-    const socialLinks = [
-        { icon: "/img-web/instagram.png", },
-        { icon: "/img-web/facebook.png" },
-        { icon: "/img-web/line.png" },
-        { icon: "/img-web/tik-tok.png" },
-        { icon: "/img-web/youtube.png" },
-    ];
-
     return (
         <Container maxWidth={false} sx={{ pt: 4 }}>
             <Typography variant="h4" fontWeight="bold" sx={{ textAlign: 'center' }} gutterBottom>
                 {selectedRoute.name}
             </Typography>
-
-            <Grid container spacing={3}>
-                {/* Left Side: Map */}
-                <Grid item xs={12} md={6}>
-                    <Box
-                        sx={{
-                            height: '100%',
-                            maxHeight: '700px',
-                            width: "100%",
-                            borderRadius: 2,
-                            alignContent: 'center',
-                            overflow: 'hidden',
-                            boxShadow: 2,
-                            backgroundColor: '#4d7e39ff',
-                            padding: 3,
-                        }}
-                    >
+            <Grid container spacing={4} sx={{ marginTop: 1 }}>
+                {/* Map and Controls Section */}
+                <Grid item xs={12} lg={6}>
+                    <Card sx={{ borderRadius: 4, boxShadow: 3, padding: 2 }}>
                         <Box
                             sx={{
                                 height: { xs: 250, md: 500 },
                                 width: "100%",
-                                // borderRadius: 2,
-                                alignContent: 'center',
-                                margin: '0 auto',
-                                overflow: 'hidden',
-                                // boxShadow: 2,
+                                alignContent: "center",
+                                margin: "0 auto",
+                                overflow: "hidden",
                             }}
                         >
-                            <MapContainer
-                                center={[13.736717, 100.523186]}
-                                zoom={6}
-                                style={{ height: "100%", maxHeight: "500px", width: "100%", borderRadius: 10 }}
-                                // dragging={false}
-                                // scrollWheelZoom={false}
-                                // doubleClickZoom={false}
-                                touchZoom={false}
-                            // boxZoom={false}
-                            // keyboard={false}
-                            // zoomControl={false} // ถ้าไม่ต้องการปุ่มซูมที่มุมขวา
-                            >
-                                <TileLayer
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-                                />
+                            {(isLoaded && mapReady) ? (
+                                <GoogleMap
+                                    mapContainerStyle={mapContainerStyle}
+                                    center={points[0] || defaultCenter} // มั่นใจว่ามีค่า
+                                    zoom={13}
+                                    onLoad={(map) => {
+                                        mapRef.current = map;
 
-                                {/* <LocationMarkerView onAddPoint={""} /> */}
+                                        if (points.length === 0) return;
 
-                                {/* {points?.map((pos, idx) => {
-                                    const isMiddlePoint = idx > 0 && idx < points.length - 1;
-                                    const numberedIcon = createNumberedIcon(idx + 1, isMiddlePoint);
+                                        const bounds = new window.google.maps.LatLngBounds();
+                                        const pathPoints = routePath?.length > 0 ? routePath : points;
 
-                                    return (
-                                        <Marker key={idx} position={pos} icon={numberedIcon}>
-                                            <Popup>
-                                                จุดที่ {idx + 1}
-                                                <br />
-                                                Lat: {pos.lat.toFixed(6)} <br />
-                                                Lng: {pos.lng.toFixed(6)} <br />
-                                                <Button
-                                                    color="error"
-                                                    size="small"
-                                                    onClick={() => handleRemovePoint(idx)}
-                                                >
-                                                    ลบจุดนี้
-                                                </Button>
-                                            </Popup>
-                                        </Marker>
-                                    );
-                                })} */}
+                                        pathPoints.forEach((p) => {
+                                            if (typeof p.lat === "number" && typeof p.lng === "number") {
+                                                bounds.extend(new window.google.maps.LatLng(p.lat, p.lng));
+                                            }
+                                        });
 
+                                        map.fitBounds(bounds);
+                                    }}
+                                >
+                                    {/* MARKERS */}
+                                    {points.map((p, idx) => (
+                                        <Marker
+                                            key={idx}
+                                            position={{ lat: p.lat, lng: p.lng }}
+                                            label={`${idx + 1}`}
+                                            title={p.name}
+                                        />
+                                    ))}
 
-                                {/* เส้นทางจริงตามถนน */}
-                                {routePolyline.length > 0 && (
-                                    <Polyline
-                                        positions={routePolyline}
-                                        pathOptions={{ color: "blue", weight: 4 }}
-                                    />
-                                )}
-                            </MapContainer>
+                                    {/* POLYLINE */}
+                                    {routePath?.length > 0 && (
+                                        <Polyline
+                                            path={routePath}
+                                            options={{
+                                                strokeColor: "#2e7d32",
+                                                strokeOpacity: 0.9,
+                                                strokeWeight: 5,
+                                            }}
+                                        />
+                                    )}
+                                </GoogleMap>
+                            ) : (
+                                <Box display="flex" justifyContent="center" alignItems="center" height={500}>
+                                    <CircularProgress />
+                                </Box>
+                            )}
                         </Box>
-                        {/* <Typography mt={2} fontWeight="bold" sx={{ color: 'white' }}>
-                            ระยะเส้นทาง : {selectedRoute.distance || '8.12'} กิโลเมตร
-                        </Typography> */}
-                        {/* Vehicle selector */}
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                gap: 2,
-                                mt: 2,
-                            }}
-                        >
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
                             <ToggleButtonGroup
+                                value={selectedVehicle}
                                 exclusive
-                                value={selectedVehicle?.type}
-                                onChange={(e, value) => {
-                                    if (!value) return;
-                                    const found = vehicleTypes.find(v => v.type === value);
-                                    if (found) setSelectedVehicle(found);
+                                onChange={handleVehicleChange}
+                                sx={{
+                                    '& .MuiToggleButton-root': {
+                                        borderRadius: 4,
+                                        p: 1,
+                                        border: 'none',
+                                        backgroundColor: 'grey.200',
+                                        '&.Mui-selected': {
+                                            backgroundColor: 'primary.main',
+                                            color: 'white',
+                                        },
+                                        '&:hover': {
+                                            backgroundColor: 'grey.300',
+                                        },
+                                    },
                                 }}
-                                aria-label="Vehicle Selection"
                             >
-                                {vehicleTypes?.map((vehicle) => (
-                                    <ToggleButton
-                                        key={vehicle.type}
-                                        value={vehicle.type}
-                                        sx={{
-                                            border: '1px solid #ccc',
-                                            borderRadius: 2,
-                                            px: 2,
-                                            py: 1,
-                                            '&.Mui-selected': {
-                                                backgroundColor: '#81c784',
-                                                color: '#fff',
-                                            },
-                                        }}
-                                    >
-                                        {vehicle.icon}
-                                    </ToggleButton>
-                                ))}
+                                <ToggleButton value="motorcycle" aria-label={translations.vechicle_1}>
+                                    <TwoWheelerIcon />
+                                </ToggleButton>
+                                <ToggleButton value="car" aria-label={translations.vechicle_2}>
+                                    <DirectionsCarIcon />
+                                </ToggleButton>
+                                <ToggleButton value="van" aria-label={translations.vechicle_3}>
+                                    <DirectionsBusIcon />
+                                </ToggleButton>
                             </ToggleButtonGroup>
                         </Box>
-
-                        {/* Footer info */}
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                mt: 2,
-                                px: 1,
-                                color: 'white',
-                                fontWeight: 'bold',
-                            }}
-                        >
-                            <Typography>ระยะเส้นทาง : {distance.toFixed(2)} กิโลเมตร</Typography>
-                            <Typography>Carbon Footprint : {carbonFootprint.toFixed(2)} kg CO2e.</Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                    {translations.distance_title}:
+                                </Typography>
+                                {loading ? (
+                                    <CircularProgress size={20} sx={{ ml: 1 }} />
+                                ) : (
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', ml: 1 }}>
+                                        {reduceDsitance.toFixed(2)}
+                                    </Typography>
+                                )}
+                                <Typography variant="h6" sx={{ fontWeight: 'bold', ml: 1 }}>
+                                    {translations.km}
+                                </Typography>
+                            </Box>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                                {translations.carbon_footprint}: {totalCO2E} kg CO2e
+                            </Typography>
                         </Box>
-                    </Box>
+                    </Card>
                 </Grid>
 
-                {/* Right Side: Route Details */}
-                <Grid item xs={12} md={6}>
+                {/* รายละเอียดเส้นทาง */}
+                <Grid item xs={12} lg={6}>
                     <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 2 }}>
                         <CardContent>
-                            {/* หัวข้อ */}
                             <Typography variant="h6" fontWeight="bold" gutterBottom align="center">
-                                {selectedRoute.name || '1 วัน'}
+                                {selectedRoutes?.title || '1 วัน'}
                             </Typography>
-
-                            {/* เช้า */}
                             <Stack direction="row" spacing={1} alignItems="flex-start" mb={1}>
                                 <AccessTime sx={{ mt: '4px' }} />
                                 <Box>
                                     <Typography fontWeight="bold">เช้า</Typography>
                                     <Typography variant="body2">
-                                        - ทำกิจกรรมที่ Columbo Craft Village หมู่บ้านบางคาร์ฟ...
+                                        - {selectedRoutes?.morningDetails}
                                     </Typography>
                                 </Box>
                             </Stack>
-
-                            {/* กลางวัน */}
                             <Stack direction="row" spacing={1} alignItems="flex-start" mb={1}>
                                 <WbSunny sx={{ mt: '4px' }} />
                                 <Box>
                                     <Typography fontWeight="bold">กลางวัน</Typography>
                                     <Typography variant="body2">
-                                        - ร้านแค่น (KAEN) ร้านอาหารสไตล์ Casual Fine Dining...
+                                        - {selectedRoutes?.middayDetails}
                                     </Typography>
                                 </Box>
                             </Stack>
-
-                            {/* เย็น */}
+                            <Stack direction="row" spacing={1} alignItems="flex-start" mb={1}>
+                                <WbSunny sx={{ mt: '4px' }} />
+                                <Box>
+                                    <Typography fontWeight="bold">บ่าย</Typography>
+                                    <Typography variant="body2">
+                                        - {selectedRoutes?.eveningDetails}
+                                    </Typography>
+                                </Box>
+                            </Stack>
                             <Stack direction="row" spacing={1} alignItems="flex-start" mb={2}>
                                 <DarkMode sx={{ mt: '4px' }} />
                                 <Box>
                                     <Typography fontWeight="bold">เย็น</Typography>
                                     <Typography variant="body2">
-                                        - นั่งชิลๆ โดยในช่วงเย็นจะเห็นภาพนักศึกษา...
+                                        - {selectedRoutes?.afternoonDetails}
                                     </Typography>
                                 </Box>
                             </Stack>
-
-                            {/* Footer */}
                             <Divider />
                             <Stack direction="row" justifyContent="space-between" mt={2}>
                                 <Stack direction="row" spacing={1} alignItems="center">
                                     <Person fontSize="small" />
-                                    <Typography variant="caption">Mr.Auearthorn</Typography>
+                                    <Typography variant="caption">Mr.{selectedRoutes?.User?.name}</Typography>
                                 </Stack>
                                 <Typography variant="caption">1 ปีที่แล้ว</Typography>
                             </Stack>
                         </CardContent>
                     </Card>
                 </Grid>
+                {/* Details Table Section */}
 
-                {/* Fuel Table */}
-                <Grid item xs={12} md={12}>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>
-                        คำนวณน้ำมันและคาร์บอน
-                    </Typography>
-                    <Typography variant="h9" gutterBottom>
-                        *ราคาน้ำมันวันที่ 10 ตุลาคม 2567
-                    </Typography>
-                    <Box
+                {/* table vihicle */}
+                <TravelPlanner data={vihicleWithRoute} />
+
+                {/* แสดง preview info_route */}
+                <Grid item xs={12}>
+
+                    <CardMedia
+                        component="img"
+                        src={`${BASE_URL}/${images[0]?.path || '/placeholder.jpg'}`}
+                        alt={images[0]?.filename}
+                        // loading="lazy"
                         sx={{
-                            width: "100%",
-                            display: 'flex',              // ✅ จัด layout แบบ flex
-                            justifyContent: 'center',     // ✅ จัดแนวนอนให้ตรงกลาง
-                            alignItems: 'center',         // ถ้าต้องการแนวตั้ง (ไม่จำเป็นในกรณีนี้)
-                            textAlign: 'center',
-                            mt: 2,
+                            width: '100%',
+                            // height: 220,
+                            objectFit: 'cover',
+                            display: 'block',
+                            borderRadius: 12,
+                            // transition: 'opacity 0.3s ease-in-out', // จาง
+                            backgroundColor: '#f0f0f0',
                         }}
-                    >
-                        <Table
-                            size="small"
-                            sx={{
-                                borderCollapse: "collapse",
-                                width: "100%",
-                                border: "1px solid #ccc",
-
-                            }}
-                        >
-                            <TableHead>
-                                <TableRow >
-                                    {[
-                                        "เส้นทาง",
-                                        "ระยะทาง (กม.)",
-                                        "พาหนะ",
-                                        "น้ำมัน",
-                                        "ราคาต่อลิตร",
-                                        "ปริมาณที่ใช้",
-                                        "คาร์บอน",
-                                        "จำนวน (บาท)",
-                                    ].map((head, idx) => (
-                                        <TableCell
-                                            key={idx}
-                                            align="center"
-                                            sx={{
-                                                border: "1px solid #ccc",
-                                                fontWeight: "bold",
-                                                backgroundColor: "#f9f9f9",
-                                                fontSize: '0.75rem'
-                                            }}
-                                        >
-                                            {head}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {fuelDataTable?.map((route, routeIdx) => {
-                                    const vehicleRows = route?.vehicles?.flatMap(v => v?.fuels).length;
-                                    let vehicleRowCounter = 0;
-
-                                    return route?.vehicles?.map((vehicle, vehicleIdx) =>
-                                        vehicle?.fuels?.map((fuel, fuelIdx) => {
-                                            const isFirstVehicleRow = fuelIdx === 0;
-                                            const isFirstRouteRow = vehicleRowCounter === 0;
-
-                                            vehicleRowCounter++;
-
-                                            return (
-                                                <TableRow key={`${routeIdx}-${vehicleIdx}-${fuelIdx}`} sx={{ fontSize: '0.75rem' }}>
-                                                    {isFirstRouteRow && (
-                                                        <>
-                                                            <TableCell rowSpan={vehicleRows} sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
-                                                                {route.route}
-                                                            </TableCell>
-                                                            <TableCell rowSpan={vehicleRows} align="center" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
-                                                                {route.distance}
-                                                            </TableCell>
-                                                        </>
-                                                    )}
-
-                                                    {isFirstVehicleRow && (
-                                                        <TableCell
-                                                            rowSpan={vehicle?.fuels?.length}
-                                                            sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}
-                                                        >
-                                                            {vehicle?.type}
-                                                        </TableCell>
-                                                    )}
-
-                                                    <TableCell sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>{fuel?.name}</TableCell>
-                                                    <TableCell align="right" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
-                                                        {fuel?.price.toFixed(2)}
-                                                    </TableCell>
-                                                    <TableCell align="right" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
-                                                        {fuel?.use.toFixed(2)} L
-                                                    </TableCell>
-                                                    <TableCell align="right" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
-                                                        {fuel?.co2.toFixed(2)} kg CO2e
-                                                    </TableCell>
-                                                    <TableCell align="right" sx={{ border: "1px solid #ccc", fontSize: '0.75rem' }}>
-                                                        {(fuel?.price * fuel?.use).toFixed(2)}
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        })
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </Box>
+                    />
                 </Grid>
 
+                {/* footer */}
+                <MainRouteFooter />
             </Grid>
-
-            {/* start Footer */}
-            <Box
-                sx={{
-                    maxWidth: { xs: '100%', sm: 800 },
-                    mx: 'auto',
-                    my: 4,
-                    p: 4,
-                    borderRadius: 2,
-                    color: 'black',
-                }}
-            >
-                <Stack spacing={3} alignItems="center" width="100%">
-                    <Box
-                        display="flex"
-                        justifyContent="center"
-                        gap={2}
-                        mt={4}
-                        flexWrap={{ xs: 'wrap', sm: 'nowrap' }}
-
-                    >
-                        {socialLinks.map((logo, i) => (
-                            <a
-                                key={i}
-                                href={logo?.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ display: 'inline-block', cursor: 'pointer' }}
-                            >
-                                <Avatar
-                                    src={logo?.icon}
-                                    variant="square"
-                                    sx={{
-                                        width: 'auto',
-                                        height: { xs: '30px', sm: '40px' },
-                                        objectFit: 'contain',
-                                        borderRadius: 1,
-                                        p: 0.5,
-                                        transition: 'transform 0.2s, box-shadow 0.2s',
-                                        '&:hover': {
-                                            transform: 'scale(1.05)',
-                                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',  // เอฟเฟกต์เงานูนขึ้น
-                                        },
-                                    }}
-                                />
-                            </a>
-                        ))}
-                    </Box>
-
-                    <Box
-                        display="flex"
-                        justifyContent="center"
-                        gap={2}
-                        mt={4}
-                        flexWrap={{ xs: 'wrap', sm: 'nowrap' }}
-                    >
-                        {logos.map((logo, i) => (
-                            <a
-                                key={i}
-                                href={logo?.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ display: 'inline-block', cursor: 'pointer' }}
-                            >
-                                <Avatar
-                                    src={logo?.src}
-                                    variant="square"
-                                    sx={{
-                                        width: 'auto',
-                                        height: { xs: '50px', sm: '70px' },
-                                        objectFit: 'contain',
-                                        borderRadius: 1,
-                                        p: 0.5,
-                                        bgcolor: 'transparent',
-                                        transition: 'transform 0.2s, box-shadow 0.2s',
-                                        '&:hover': {
-                                            transform: 'scale(1.05)',
-                                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',  // เอฟเฟกต์เงานูนขึ้น
-                                        },
-                                    }}
-                                />
-                            </a>
-                        ))}
-                    </Box>
-
-                    <Box textAlign="center" mt={3}>
-                        <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '1rem' } }}>
-                            LET’S GO LOW CARBON BY CAPTOUR & KKU TRAVEL, KKBS, KKU © 2023
-                        </Typography>
-                        <Stack
-                            direction={{ xs: 'column', sm: 'row' }}
-                            spacing={2}
-                            justifyContent="center"
-                            mt={1}
-                            alignItems="center"
-                        >
-                            <Link component={RouterLink} to="/privacy" underline="hover">
-                                {t('menu.privacy_policy')}
-                            </Link>
-                            <Link component={RouterLink} to="/terms" underline="hover">
-                                {t('menu.terms')}
-                            </Link>
-                            <Link component={RouterLink} to="/contact" underline="hover">
-                                {t('menu.contacts')}
-                            </Link>
-                            <Link component={RouterLink} to="/about" underline="hover">
-                                {t('menu.abouts')}
-                            </Link>
-                        </Stack>
-                    </Box>
-                </Stack>
-            </Box>
-            {/* end Footer */}
-
-        </Container >
+        </Container>
     );
 }
 

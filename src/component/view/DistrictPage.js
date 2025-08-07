@@ -1,31 +1,91 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import Mueang_district from './districts/Mueang_district';
-import Phu_Pha_Man_district from './districts/Phu_Pha_Man_district';
-import Ubonrat_district from './districts/Ubonrat_district';
-import Nam_Phong_district from './districts/Nam_Phong_district';
-import Si_Chomphu_district from './districts/Si_Chomphu_district';
-import Phu_Wiang_district from './districts/Phu_Wiang_district';
+import Mian_District from './districts/Mian_District';
+import axios from 'axios';
 
 function DistrictPage({ screenWidth, defaultTheme }) {
     const { id } = useParams();
+    const [districtData, setDistrictData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const token = localStorage.getItem("token")
 
-    switch (id) {
-        case 'mueang':
-            return <Mueang_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'mueang'} />;
-        case 'phu_pha_man':
-            return <Phu_Pha_Man_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'phu_pha_man'} />;
-        case 'ubonrat':
-            return <Ubonrat_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'ubonrat'} />;
-        case 'phu_wiang':
-            return <Phu_Wiang_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'phu_wiang'} />;
-        case 'nam_phong':
-            return <Nam_Phong_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'nam_phong'} />;
-        case 'si_chomphu':
-            return <Si_Chomphu_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'si_chomphu'} />;
-        default:
-            return <div>404: District not found</div>;
+
+    const districtMap = {
+        'mueang': 1,
+        'phu_pha_man': 2,
+        'ubonrat': 3,
+        'phu_wiang': 4,
+        'nam_phong': 5,
+        'si_chomphu': 6,
+    };
+
+    useEffect(() => {
+        if (!districtMap[id]) {
+            setError('404: District not found');
+            setLoading(false);
+            return;
+        }
+
+        const fetchDistrictData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                // 🔧 ตัวอย่าง API — เปลี่ยนให้ตรงกับของคุณ
+                const resDistrict = await axios.get("http://localhost:8080/district_guest", {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                console.log("resDistrict.data", resDistrict.data);
+
+                setDistrictData(resDistrict.data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+       
+
+        fetchDistrictData();
+    }, [id]);
+
+    if (loading) {
+        return <div style={{ padding: '2rem' }}>กำลังโหลดข้อมูล...</div>;
     }
+
+    if (error) {
+        return <div style={{ color: 'red', padding: '2rem' }}>{error}</div>;
+    }
+
+
+    return (
+        <Mian_District
+            screenWidth={screenWidth}
+            defaultTheme={defaultTheme}
+            id={id}
+            did={districtMap[id]}
+            data={districtData} // 👈 ส่งข้อมูลอำเภอที่โหลดมา
+        />
+        // switch (id) {
+        //     case 'mueang':
+        //         return <Mueang_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'mueang'} />;
+        //     case 'phu_pha_man':
+        //         return <Phu_Pha_Man_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'phu_pha_man'} />;
+        //     case 'ubonrat':
+        //         return <Ubonrat_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'ubonrat'} />;
+        //     case 'phu_wiang':
+        //         return <Phu_Wiang_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'phu_wiang'} />;
+        //     case 'nam_phong':
+        //         return <Nam_Phong_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'nam_phong'} />;
+        //     case 'si_chomphu':
+        //         return <Si_Chomphu_district screenWidth={screenWidth} defaultTheme={defaultTheme} id={'si_chomphu'} />;
+        //     default:
+        //         return <div>404: District not found</div>;
+        // }
+    )
 }
 
 export default DistrictPage

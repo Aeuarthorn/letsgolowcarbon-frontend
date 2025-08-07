@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -11,14 +11,67 @@ import {
   Stack,
   Paper,
   Avatar,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 import OpacityIcon from "@mui/icons-material/Opacity";
 import LocalGasStationIcon from "@mui/icons-material/LocalGasStation";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import ImageSlider from "../routes/ImageSlider";
 
 function TravelDetail() {
+  // http://localhost:8080/get_places_tourist_attraction_details
+  const navigate = useNavigate();
+  const [placesDataDetail, setPlacesDataDetail] = useState([]);
+  const token = localStorage.getItem("token");
+  const [loading, setLoading] = useState(false);
+  const [errorSnackbar, setErrorSnackbar] = useState({
+    open: false,
+    message: "",
+  });
+  const location = useLocation();
+  const stateDetail = location.state;
+
+  const BASE_URL = "http://localhost:8080";
+
+  useEffect(() => {
+    const cachedData = sessionStorage.getItem("placesDataDetail");
+    if (cachedData) {
+      setPlacesDataDetail(JSON.parse(cachedData));
+      console.log("ใช้ข้อมูลจาก sessionStorage");
+    } else {
+      LoadDataPlaceDetail(); // ถ้าไม่มี cache ค่อยโหลดจาก API
+    }
+  }, []);
+
+  const LoadDataPlaceDetail = async () => {
+    setLoading(true);
+
+    try {
+      const res = await axios.post("http://localhost:8080/get_places_tourist_attraction_details", stateDetail, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("res.data", res.data);
+
+      setPlacesDataDetail(res.data);
+      localStorage.setItem("placesDataDetail", JSON.stringify(res.data)); // เซฟไว้ใช้ครั้งหน้า
+    } catch (err) {
+      console.error("Fetch failed:", err);
+      setErrorSnackbar({
+        open: true,
+        message: "โหลดข้อมูลล้มเหลว",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const EnergyItem = ({ icon, label, value, unit, color }) => (
     <Card
@@ -49,16 +102,8 @@ function TravelDetail() {
     <Box p={3}>
       <Grid container spacing={3}>
         {/* ภาพและแผนที่ */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardMedia
-              component="img"
-              height="400"
-              image="/path-to-image.jpg" // เปลี่ยนเป็น path ที่คุณเก็บรูป
-              alt="ผาชมตะวัน"
-            />
-          </Card>
-        </Grid>
+        <ImageSlider images={placesDataDetail.images} BASE_URL={BASE_URL} />
+
 
         {/* ข้อมูลรายละเอียด */}
         <Grid item xs={12} md={6}>
@@ -71,33 +116,19 @@ function TravelDetail() {
 
           {/* ย่อหน้า 1 */}
           <Typography variant="body1" sx={{ mb: 2 }}>
-            ผาชมตะวัน จากตัวจังหวัดขอนแก่น ใช้เส้นทางหลวงแผ่นดินหมายเลข 12 (ขอนแก่น-ชุมแพ)
-            ผ่านอำเภอบ้านฝาง อำเภอหนองเรือ ระยะทางประมาณ 48 กิโลเมตร แยกขวาเข้าทางหลวงหมายเลข 2038
-            เป็นระยะทาง 18 กิโลเมตร ถึงอำเภอภูเวียง แล้วใช้เส้นทางภูเวียง-บ้านเมืองใหม่
-            ไปจนถึงกิโลเมตรที่ 30 เลี้ยวซ้ายตรงทางเข้าอ่างเก็บน้ำบ้านโพธิ์
-            เป็นระยะทาง 8 กิโลเมตร ถึงที่ทำการอุทยานแห่งชาติภูเวียง
-
-            จากนั้นเดินทางโดยรถยนต์ขึ้นเขาอีกประมาณ 10 กิโลเมตร
-            อยู่ห่างจากน้ำตกตาดฟ้าประมาณ 2 กิโลเมตร เป็นหน้าผาหิน
-            เกิดจากการยกตัวของแผ่นเปลือกโลกและรอยเลื่อน
-            ทำให้เกิดลักษณะเป็นหน้าผาสูงชันตลอดแนวเทือกเขา
-
-            โดยเฉพาะบริเวณเทือกเขาด้านทิศตะวันออกของพื้นที่อุทยานแห่งชาติภูเวียง
-            เป็นจุดสนใจของนักท่องเที่ยวที่เข้ามาชมความงามของพระอาทิตย์ยามเช้าเมื่อโผล่พ้นจากขอบฟ้า
-            สามารถมองเห็นทัศนียภาพอันสวยงามเบื้องล่างและสามารถมองเห็นอ่างเก็บน้ำเขื่อนอุบลรัตน์ได้
-            นับว่าเป็นจุดชมพระอาทิตย์ขึ้นในตอนเช้าที่สวยงามอีกจุดหนึ่งของจังหวัดขอนแก่น
+            {placesDataDetail?.historyDescription}
           </Typography>
           <Divider sx={{ my: 2 }} />
 
           <Typography variant="subtitle1" fontWeight="bold">
             กิจกรรม
           </Typography>
-          <Typography>เดินป่า ชมวิวถ่ายภาพ</Typography>
+          <Typography> {placesDataDetail?.activities}</Typography>
 
           <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
             ค่าธรรมเนียม
           </Typography>
-          <Typography>รวมค่าบำรุงรักษาสถานที่</Typography>
+          <Typography>{placesDataDetail?.cost}</Typography>
 
           <Divider sx={{ my: 3 }} />
           {/* ข้อมูลการใช้งาน */}
@@ -112,7 +143,7 @@ function TravelDetail() {
                   sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}
                 >
                   <Typography variant="h4" color="primary">
-                    100
+                    {placesDataDetail?.touristCapacity}
                   </Typography>
                   <Typography variant="body2">การตรวจวัดนักท่องเที่ยว</Typography>
                 </Paper>
@@ -123,7 +154,7 @@ function TravelDetail() {
                   elevation={2}
                   sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}
                 >
-                  <Typography variant="h6">08:30-16:30</Typography>
+                  <Typography > {placesDataDetail?.openingHours}</Typography>
                   <Typography variant="body2">เวลาทำการ</Typography>
                 </Paper>
               </Grid>
@@ -133,8 +164,8 @@ function TravelDetail() {
                   elevation={2}
                   sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}
                 >
-                  <Typography variant="body1">-</Typography>
-                  <Typography variant="body2">คู่มือท่องเที่ยว</Typography>
+                  <Typography variant="body1">{placesDataDetail?.openingHours}</Typography>
+                  <Typography variant="body2">ฤดูการท่องเที่ยว</Typography>
                 </Paper>
               </Grid>
 
@@ -143,8 +174,8 @@ function TravelDetail() {
                   elevation={2}
                   sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}
                 >
-                  <Typography variant="body1">-</Typography>
-                  <Typography variant="body2">การเข้าถึงเว็บไซต์</Typography>
+                  <Typography variant="body1">{placesDataDetail?.carFootprintPerDay}</Typography>
+                  <Typography variant="body2">คาร์ฟุตพริ้นท์/วัน</Typography>
                 </Paper>
               </Grid>
             </Grid>
@@ -168,21 +199,21 @@ function TravelDetail() {
                 <EnergyItem
                   icon={<FlashOnIcon />}
                   label="การใช้ไฟฟ้า"
-                  value="0"
+                  value={placesDataDetail?.electricityUsage}
                   unit="หน่วย ⚡"
                   color="orange"
                 />
                 <EnergyItem
                   icon={<OpacityIcon />}
                   label="การใช้น้ำ"
-                  value="0"
+                  value={placesDataDetail?.waterUsage}
                   unit="ลิตร 💧"
                   color="skyblue"
                 />
                 <EnergyItem
                   icon={<LocalGasStationIcon />}
                   label="การใช้น้ำมัน"
-                  value="0"
+                  value={placesDataDetail?.fuelUsage}
                   unit="ลิตร/วัน ⛽"
                   color="gray"
                 />
@@ -191,36 +222,36 @@ function TravelDetail() {
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                 การจัดการน้ำและการปล่อยน้ำเสีย
               </Typography>
-              <Typography>0</Typography>
+              <Typography>{placesDataDetail?.wastewaterManagement}</Typography>
 
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
                 การจัดการขยะ
               </Typography>
-              <Typography>มีระบบแยกขยะ ลดการใช้พลาสติก</Typography>
+              <Typography>{placesDataDetail?.wasteManagement}</Typography>
 
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
                 การปล่อยคาร์บอนของสถานที่ท่องเที่ยว
               </Typography>
               <Typography>
-                มีแผนและหลอดไฟใช้ได้วัสดุที่ช่วยลดลายคาร์บอน
+                {placesDataDetail?.ecoSystemChange}
               </Typography>
               <Divider sx={{ my: 3 }} />
               <Typography variant="h6" sx={{ mt: 4 }}>
                 ติดต่อสอบถาม
               </Typography>
-              <Typography>043-358073</Typography>
+              <Typography>{placesDataDetail?.contactInfo}</Typography>
 
               <Typography variant="h6" sx={{ mt: 2 }}>
                 ที่ตั้ง
               </Typography>
               <Typography>
-                ตำบลเขาน้อยภูเวียง อำเภอในเมือง จังหวัดขอนแก่น
+                {placesDataDetail?.locationDescription}
               </Typography>
 
               <Typography variant="h6" sx={{ mt: 2 }}>
                 หมายเหตุ
               </Typography>
-              <Typography>-</Typography>
+              <Typography>{placesDataDetail?.notes}</Typography>
             </Box>
           </Grid>
           <Box
@@ -244,6 +275,21 @@ function TravelDetail() {
           </Box>
         </Grid>
       </Grid>
+      {/* // JSX ส่วนแสดง error Snackbar */}
+      <Snackbar
+        open={errorSnackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setErrorSnackbar({ open: false, message: "" })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity="error"
+          variant="filled"
+          sx={{ fontWeight: "bold" }}
+        >
+          {errorSnackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

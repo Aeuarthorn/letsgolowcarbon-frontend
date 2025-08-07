@@ -198,7 +198,7 @@ function MainPage({ screenWidth, defaultTheme }) {
                             gap: 2, // เพิ่มระยะห่างระหว่าง item ในแนวตั้ง
                         }}
                     >
-                        <MainRouteFooter />
+                        <MainRouteFooter screenWidth={screenWidth} />
                     </Box>
                 </Grid>
             </Provider>

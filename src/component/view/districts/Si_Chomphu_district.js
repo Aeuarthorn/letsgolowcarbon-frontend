@@ -21,13 +21,13 @@ function Si_Chomphu_district({ screenWidth, defaultTheme, id }) {
   }));
 
   return (
-    <ThemeProvider theme={defaultTheme}>
+    <ThemeProvider theme={defaultTheme} sx={{ height: '100%', }}>
       <Grid item xs={24}>
         <Box
           sx={{
             position: 'relative',
             width: '100%',
-            height: '100vh',
+            // height: '100vh',
             backgroundImage: `url('/img-web/ในเมือง_.png')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
@@ -54,7 +54,7 @@ function Si_Chomphu_district({ screenWidth, defaultTheme, id }) {
               maxWidth: {
                 xs: '90%',  // 90% บนมือถือ
                 sm: '80%',  // 80% บนแท็บเล็ต
-                md: '60%',  // 60% บนเดสก์ท็อป
+                md: '80%',  // 60% บนเดสก์ท็อป
               },
               mx: 'auto', // center horizontally
             }}

@@ -22,11 +22,10 @@ import SignUpPage from "./SignUpPage";
 import MainAdmin from "./component/admin/MainAdmin";
 import MainUser from "./component/user/MainUser";
 import "leaflet/dist/leaflet.css";
-import MainTravel from "./component/view/travels/MainTravel";
-import MainCommunityProducts from "./component/view/communityProducts/MainCommunityProducts";
-import MainSouvenirs from "./component/view/souvenirs/MainSouvenirs";
-import MainRestaurants from "./component/view/restaurants/MainRestaurants";
-import MainHomeStays from "./component/view/homestays/MainHomeStays";
+import TermofService from "./component/view/TermofService";
+import PrivacyPolicy from "./component/view/PrivacyPolicy"
+import PlacesList from "./component/view/places/PlacesList";
+import PlacesDetails from "./component/view/places/PlacesDetails";
 
 const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -103,7 +102,7 @@ export default function App() {
   if (loadingRole) return <div>Loading...</div>;
 
   const ProtectedRoute = ({ element, allowedRoles, userRole }) => {
-    console.log("Checking role:", userRole, "Allowed roles:", allowedRoles);
+    // console.log("Checking role:", userRole, "Allowed roles:", allowedRoles);
     const currentRole = userRole ?? "guest";
 
     if (!allowedRoles.includes(currentRole)) {
@@ -121,9 +120,8 @@ export default function App() {
       {/* HEADER */}
       {!isAdminPage && (
         <div
-          className={`transition-transform duration-300 fixed top-0 left-0 right-0 z-50 ${
-            showHeader ? "translate-y-0" : "-translate-y-full"
-          }`}
+          className={`transition-transform duration-300 fixed top-0 left-0 right-0 z-50 ${showHeader ? "translate-y-0" : "-translate-y-full"
+            }`}
         >
           <HeadPage
             screenWidth={screenWidth}
@@ -178,6 +176,36 @@ export default function App() {
               <ProtectedRoute
                 element={
                   <About
+                    screenWidth={screenWidth}
+                    defaultTheme={defaultTheme}
+                  />
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <ProtectedRoute
+                element={
+                  <PrivacyPolicy
+                    screenWidth={screenWidth}
+                    defaultTheme={defaultTheme}
+                  />
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <ProtectedRoute
+                element={
+                  <TermofService
                     screenWidth={screenWidth}
                     defaultTheme={defaultTheme}
                   />
@@ -260,19 +288,20 @@ export default function App() {
           />
 
           <Route
-            path="/place/travels/*"
+            path="/place/*"
             element={
               <APIProvider apiKey={apiKey}>
-                <MainTravel
-                  screenWidth={screenWidth}
-                  defaultTheme={defaultTheme}
-                  allowedRoles={["guest"]}
-                  userRole={role}
-                />
+                <Routes>
+                  {/* รายการแต่ละประเภท */}
+                  <Route path=":placeType" element={<PlacesList />} />
+
+                  {/* รายละเอียด */}
+                  <Route path="/:placeType/:slug/:id" element={<PlacesDetails />} />
+                </Routes>
               </APIProvider>
             }
           />
-          <Route
+          {/* <Route
             path="/place/home-stay/*"
             element={
               <APIProvider apiKey={apiKey}>
@@ -323,7 +352,7 @@ export default function App() {
                 />
               </APIProvider>
             }
-          />
+          /> */}
 
           <Route
             path="/district/:slug/:id"

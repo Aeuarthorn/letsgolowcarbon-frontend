@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -8,69 +8,74 @@ import {
   CardMedia,
   Button,
   Chip,
+  Snackbar,
+  Alert,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-
-const attractionsData = [
-  {
-    slug: "mueang",
-    district: "อำเภอเมือง",
-    places: [
-      {
-        id: 1,
-        name: "บึงแก่นนคร",
-        description:
-          "บึงแก่นนคร หรือสมัยในอดีตคือ บึงขอน บึงบอน เป็นบึงรูปวงรี...",
-        image: "/images/buengkaennakorn.jpg",
-      },
-      {
-        id: 2,
-        name: "บึงสีฐาน",
-        description: "บึงสีฐาน ขนาดประมาณ 3 ไร่ เหมาะแก่การพักผ่อน...",
-        image: "/images/buengsithan.jpg",
-      },
-      {
-        id: 3,
-        name: "วัดหนองแวง",
-        description: "พระมหาธาตุแก่นนคร ตั้งอยู่ในบริเวณวัดหนองแวง...",
-        image: "/images/watnongwaeng.jpg",
-      },
-      {
-        id: 4,
-        name: "Columbo Craft Village",
-        description: "“Columbo Craft Village” จังหวัดขอนแก่น...",
-        image: "/images/columbo.jpg",
-      },
-      {
-        id: 5,
-        name: "KHONKAEN EXOTIC PET & NIGHT SAFARI",
-        description: "สวนสัตว์แปลกและไนท์ซาฟารี เปิดให้บริการตั้งแต่ปี 2561...",
-        image: "/images/exoticpet.jpg",
-      },
-      {
-        id: 6,
-        name: "พิพิธภัณฑ์ธรรมชาติวิทยา",
-        description: "พิพิธภัณฑ์ตั้งอยู่ภายในมหาวิทยาลัยขอนแก่น...",
-        image: "/images/naturemuseum.jpg",
-      },
-    ],
-  },
-  {
-    slug: "phuphaman",
-    district: "อำเภอภูผาม่าน",
-    places: [
-      {
-        id: 1,
-        name: "น้ำตกตาดฟ้า",
-        description: "น้ำตกขนาดใหญ่ในเขตอุทยานภูผาม่าน...",
-        image: "/images/tatfa.jpg",
-      },
-    ],
-  },
-];
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function TravelList() {
   const navigate = useNavigate();
+  const [placesData, setPlacesData] = useState([]);
+  const token = localStorage.getItem("token");
+  const [loading, setLoading] = useState(false);
+  const [errorSnackbar, setErrorSnackbar] = useState({
+    open: false,
+    message: "",
+  });
+  const location = useLocation();
+  const stateList = location.state;
+  const BASE_URL = "http://localhost:8080";
+
+  console.log("stateList", stateList);
+  console.log("placesData", placesData);
+
+
+  useEffect(() => {
+    const cachedData = sessionStorage.getItem("placesData");
+
+    if (cachedData) {
+      console.log("11");
+
+      setPlacesData(JSON.parse(cachedData));
+      console.log("ใช้ข้อมูลจาก sessionStorage");
+    } else {
+      console.log("22");
+      LoadDataPlace(); // ถ้าไม่มี cache ค่อยโหลดจาก API
+    }
+  }, []);
+
+  const LoadDataPlace = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.post("http://localhost:8080/get_places_tourist_attraction", stateList, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("res.data", res.data);
+      if (Array.isArray(res.data)) {
+        setPlacesData(res.data);
+        sessionStorage.setItem("placesData", JSON.stringify(res.data));
+      } else {
+        console.warn("API response is not an array:", res.data);
+        setPlacesData([]); // fallback
+      }
+
+    } catch (err) {
+      console.error("Fetch failed:", err);
+      setErrorSnackbar({
+        open: true,
+        message: "โหลดข้อมูลล้มเหลว",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
 
   return (
     <Box
@@ -88,7 +93,8 @@ function TravelList() {
       >
         สถานที่ท่องเที่ยว
       </Typography>
-      {attractionsData?.map((districtData) => (
+
+      {placesData?.map((districtData) => (
         <Box key={districtData?.slug} sx={{ mb: 6 }}>
           <Typography variant="h5" fontWeight="bold" mb={3}>
             สถานที่ท่องเที่ยวใน {districtData?.district}
@@ -121,7 +127,8 @@ function TravelList() {
                 >
                   <CardMedia
                     component="img"
-                    image={place.image}
+                    // image={place.image}
+                    image={`${BASE_URL}/${place.image}`}
                     alt={place.name}
                     sx={{
                       height: { xs: 180, sm: 200, md: 220 },
@@ -165,8 +172,18 @@ function TravelList() {
                         backgroundColor: "#66bb6a",
                         ":hover": { backgroundColor: "#4caf50" },
                       }}
+                      // onClick={() => // แบบเดิม
+                      //   navigate(`${districtData.slug}/${place.id}`)
+                      // }
                       onClick={() =>
-                        navigate(`${districtData.slug}/${place.id}`)
+                        navigate(`${districtData.slug}/${place.id}`, {
+                          state: {
+                            pid: place.id,
+                            type: "img_detail_place",
+                            placeType: "tourist_attraction",
+                            refName: "place",
+                          },
+                        })
                       }
                     >
                       อ่านเพิ่มเติม
@@ -178,6 +195,22 @@ function TravelList() {
           </Grid>
         </Box>
       ))}
+
+      {/* // JSX ส่วนแสดง error Snackbar */}
+      <Snackbar
+        open={errorSnackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setErrorSnackbar({ open: false, message: "" })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity="error"
+          variant="filled"
+          sx={{ fontWeight: "bold" }}
+        >
+          {errorSnackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

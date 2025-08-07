@@ -1,7 +1,7 @@
 import { Avatar, Box, Button, Card, CardActions, CardContent, CssBaseline, Grid, ThemeProvider, Typography } from '@mui/material'
 import React from 'react'
 import { createTheme } from '@mui/material/styles';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import FestivalIcon from '@mui/icons-material/Festival';
 
 const defaultTheme = createTheme({
@@ -16,16 +16,29 @@ const defaultTheme = createTheme({
         },
     },
 });
-
 const icon = [
-    { icon: "maptravel-Photoroom.png", label: 'สถานที่ท่องเที่ยว', path: 'travels' },
-    { icon: "home-Photoroom.png", label: 'ที่พัก', path: 'home-stay' },
-    { icon: "food-Photoroom.png", label: 'ร้านอาหาร', path: 'food' },
-    { icon: "gift-Photoroom.png", label: 'ร้านของที่ระลึก', path: 'gift' },
-    { icon: "market-Photoroom.png", label: 'ผลิตภัณฑ์ชุมชน', path: 'market' },
+    { icon: "maptravel-Photoroom.png", label: 'สถานที่ท่องเที่ยว', path: 'travels', placeType: 'tourist_attraction' },
+    { icon: "home-Photoroom.png", label: 'ที่พัก', path: 'home-stay', placeType: 'hotel' },
+    { icon: "food-Photoroom.png", label: 'ร้านอาหาร', path: 'food', placeType: 'restaurant' },
+    { icon: "gift-Photoroom.png", label: 'ร้านของที่ระลึก', path: 'gift', placeType: 'gift_shop' },
+    { icon: "market-Photoroom.png", label: 'ผลิตภัณฑ์ชุมชน', path: 'market', placeType: 'community_product' },
 ];
 
 function MainRouteTraval() {
+    const navigate = useNavigate();
+
+    const handleNavigate = (item, index) => {
+        console.log("item", item);
+
+        navigate(`/place/${item.path}`, {
+            state: {
+                type: 'banner_place',
+                placeType: item.placeType,
+                refName: 'place',
+                label: item.label, // 👈 เพิ่ม label ที่ต้องการให้โชว์
+            },
+        });
+    };
     return (
         <ThemeProvider
             theme={defaultTheme}>
@@ -63,8 +76,9 @@ function MainRouteTraval() {
                             }}
                         >
                             <Box
-                                component={Link}
-                                to={`/place/${item.path}`} // ใช้ชื่อ label เป็น path เช่น /อาหาร
+                                onClick={() => handleNavigate(item, index)}
+                                // component={Link}
+                                // to={`/place/${item.path}`} // ใช้ชื่อ label เป็น path เช่น /อาหาร
                                 sx={{
                                     textDecoration: 'none',
                                     display: 'flex',
