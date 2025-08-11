@@ -121,6 +121,12 @@ function AdminSideBar({ selected, onSelect }) {
                                 </ListItem>
                             </List>
                             <List dense>
+                                <ListItem button onClick={() => onSelect("addRouteDistrictVideo")}>
+                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                    <ListItemText primary="เพิ่มวิดีโออำเภอ" />
+                                </ListItem>
+                            </List>
+                            <List dense>
                                 <ListItem button onClick={() => onSelect("addLanguage")}>
                                     <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
                                     <ListItemText primary="เพิ่มภาษา" />

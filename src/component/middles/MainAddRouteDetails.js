@@ -184,7 +184,7 @@ function MainAddRouteDetails() {
               }}
             >
               <MenuItem value="">
-                <em>-- เลือกอำเภอ --</em>
+                <em>-- เลือกเส้นทาง --</em>
               </MenuItem>
               {travelses?.map((d) => (
                 <MenuItem key={d.tid} value={d.tid}>

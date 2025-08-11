@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
-import { Link, Link as RouterLink } from 'react-router-dom';
+import { Link, Link as RouterLink, useLocation } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -61,7 +61,7 @@ function MainRoutes() {
     const [vihicleWithRoute, setVihicleWithRoute] = useState([]);
     const [reduceDsitance, setReduceDsitance] = useState(0);
     const [selectedVehicle, setSelectedVehicle] = useState('motorcycle');
-    const [selectedRoutes, setselectedRoutes] = useState('motorcycle');
+    const [selectedRoutes, setselectedRoutes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [totalCO2E, setTotalCO2E] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -72,15 +72,54 @@ function MainRoutes() {
     const mapRef = useRef(null);
     const routeKey = `route_${slug}`;
     const allRoutes = t(routeKey, { returnObjects: true });
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+
+    const index = queryParams.get('index'); // string
+    const idx = index ? parseInt(index, 10) : null;
+
+    const names = queryParams.get('name');
+
+    // console.log("names", names);
+    // console.log("idx:", idx);
+
+    // // ส่วนอื่นๆ ที่คุณมี
+    // console.log('images:', images);
+    // console.log('slug:', slug);
+    // console.log('id:', id);
+    // console.log('allRoutes:', allRoutes);
 
     const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
     const { isLoaded, loadError } = useJsApiLoader({
         googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     });
-    const selectedRoute = Array.isArray(allRoutes)
-        ? allRoutes.find((r) => String(r.id) === id)
-        : null;
 
+
+    const selectedRoute = Array.isArray(allRoutes)
+        ? allRoutes.find((r) => String(r.id) === String(idx + 1)) || {}
+        : {};
+
+
+    console.log("selectedRoute", selectedRoute);
+    // let selectedRoute = null;
+
+    // if (Array.isArray(allRoutes)) {
+    //     console.log("✅ allRoutes เป็น Array");
+    //     console.log("🔍 id จาก params:", id, typeof id);
+    //     console.log("🗂 ids ใน allRoutes:", allRoutes.map(r => r.id));
+
+    //     selectedRoute = allRoutes.find(r => String(r.id) === String(id));
+
+    //     if (!selectedRoute) {
+    //         console.warn(
+    //             `⚠️ หาไม่เจอ: id="${id}" ไม่ตรงกับ ids=[${allRoutes.map(r => r.id).join(", ")}]`
+    //         );
+    //     }
+    // } else {
+    //     console.error("❌ allRoutes ไม่ใช่ Array หรือยังไม่มีข้อมูล:", allRoutes);
+    // }
+
+    // console.log("selectedRoute", selectedRoute);
 
 
     function calculateCO2E(vechicleType, fuelType, distance) {
@@ -89,14 +128,10 @@ function MainRoutes() {
         // const oilUsed = ((distance / fixedVechicleTypeValue) * 1000);
         var findFuelUsed = calculateOilUsage(distance, vechicleType);
         var co2ePerLiter = getCO2ePerLiter(fuelType);
-        console.log("co2ePerLiter", co2ePerLiter);
-        console.log("findFuelUsed", findFuelUsed);
         var co2e = (findFuelUsed * co2ePerLiter)
         var cal = co2e / 1000; // คำนวณ CO2e (kg)
         var cal = Math.floor(cal * 100) / 100;
-        console.log("cal", cal);
         return cal.toFixed(2);
-        // return co2e; // คืนค่าเป็น float (ไม่ปัดเศษ)
     }
     function calculateOilUsage(distance, vechicleType) {
         // - วิธีหาน้ำมันที่ใช้ -
@@ -111,9 +146,6 @@ function MainRoutes() {
         } else {
             efficiencyKmPerL = 1; // fallback กันหารศูนย์
         }
-        console.log("efficiencyKmPerL", efficiencyKmPerL);
-        console.log("(distance / efficiencyKmPerL) * 1000", (distance / efficiencyKmPerL) * 1000);
-
         return (distance / efficiencyKmPerL) * 1000; // mL
     }
     function getCO2ePerLiter(fuelType) {
@@ -127,6 +159,7 @@ function MainRoutes() {
         }
     }
 
+
     // โหลดข้อมูลเส้นทางรถ (โหลดรอบเดียวตอน mount หรือเมื่อ id, token เปลี่ยน)
     useEffect(() => {
         setIsLoading(true);
@@ -137,10 +170,14 @@ function MainRoutes() {
         ])
             .then(([vehicleRes, routeRes, routeDetails]) => {
                 console.log("routeDetails?.data ", routeDetails?.data);
-                // console.log("vehicleRes?.data ", vehicleRes?.data);
-                // console.log("routeRes.data ", routeRes.data);
+                console.log("vehicleRes?.data ", vehicleRes?.data);
+                console.log("routeRes.data ", routeRes.data);
                 setVihicleWithRoute(vehicleRes?.data || []);
-                setImages(routeDetails?.data?.ImageRoute || []);
+                // setImages(routeDetails?.data[0]?.ImageRoute || []);
+                const allImages = routeDetails?.data
+                    ?.flatMap(item => item.ImageRoute || []) || [];
+                setImages(allImages);
+
                 setselectedRoutes(routeDetails?.data || []);
                 const fixedPoints = routeRes?.data
                     ?.map((p) => {
@@ -245,7 +282,6 @@ function MainRoutes() {
         // const directionsService = new window.google.maps.DirectionsService();
         const directionsService = new window.google.maps.DirectionsService();
 
-
         const origin = points[0];
         const destination = points[points.length - 1];
         const waypoints = points.slice(1, points.length - 1).map((p) => ({
@@ -285,18 +321,25 @@ function MainRoutes() {
     };
 
 
-    if (!selectedRoute) {
-        return (
-            <Container maxWidth="sm" sx={{ pt: 4 }}>
-                <Typography variant="h6" color="error">ไม่พบข้อมูลเส้นทางที่คุณเลือก</Typography>
-            </Container>
-        );
-    }
+    // if (!selectedRoute) {
+    //     return (
+    //         <Container maxWidth="sm" sx={{ pt: 4 }}>
+    //             <Typography variant="h6" color="error">ไม่พบข้อมูลเส้นทางที่คุณเลือก</Typography>
+    //         </Container>
+    //     );
+    // }
 
     return (
         <Container maxWidth={false} sx={{ pt: 4 }}>
-            <Typography variant="h4" fontWeight="bold" sx={{ textAlign: 'center' }} gutterBottom>
-                {selectedRoute.name}
+            <Typography
+                variant="h4"
+                fontWeight="bold"
+                color="success.main" // ใช้สีเขียวหลักจาก theme
+                gutterBottom
+                textAlign="center"
+                sx={{ mb: 1 }}
+            >
+                {selectedRoute.name || names}
             </Typography>
             <Grid container spacing={4} sx={{ marginTop: 1 }}>
                 {/* Map and Controls Section */}
@@ -357,7 +400,8 @@ function MainRoutes() {
                                 </GoogleMap>
                             ) : (
                                 <Box display="flex" justifyContent="center" alignItems="center" height={500}>
-                                    <CircularProgress />
+                                    {/* <CircularProgress /> */}
+                                    ยังไม่มีพิกัด GoogleMap ในฐานข้อมูล
                                 </Box>
                             )}
                         </Box>
@@ -415,60 +459,83 @@ function MainRoutes() {
                         </Box>
                     </Card>
                 </Grid>
+                <Grid item xs={12} md={6}>
+                    {/* รายละเอียดเส้นทาง */}
+                    {selectedRoutes?.length > 0 ?
+                        <>
+                            {
+                                Array.isArray(selectedRoutes) && selectedRoutes?.map((route, idx) => (
+                                    <Grid item xs={12} key={idx}>
+                                        <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 2, mb: 2 }}>
+                                            <CardContent>
+                                                <Typography variant="h6" fontWeight="bold" gutterBottom align="center">
+                                                    {route.title || '1 วัน'}
+                                                </Typography>
 
-                {/* รายละเอียดเส้นทาง */}
-                <Grid item xs={12} lg={6}>
-                    <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 2 }}>
-                        <CardContent>
-                            <Typography variant="h6" fontWeight="bold" gutterBottom align="center">
-                                {selectedRoutes?.title || '1 วัน'}
-                            </Typography>
-                            <Stack direction="row" spacing={1} alignItems="flex-start" mb={1}>
-                                <AccessTime sx={{ mt: '4px' }} />
-                                <Box>
-                                    <Typography fontWeight="bold">เช้า</Typography>
-                                    <Typography variant="body2">
-                                        - {selectedRoutes?.morningDetails}
-                                    </Typography>
-                                </Box>
-                            </Stack>
-                            <Stack direction="row" spacing={1} alignItems="flex-start" mb={1}>
-                                <WbSunny sx={{ mt: '4px' }} />
-                                <Box>
-                                    <Typography fontWeight="bold">กลางวัน</Typography>
-                                    <Typography variant="body2">
-                                        - {selectedRoutes?.middayDetails}
-                                    </Typography>
-                                </Box>
-                            </Stack>
-                            <Stack direction="row" spacing={1} alignItems="flex-start" mb={1}>
-                                <WbSunny sx={{ mt: '4px' }} />
-                                <Box>
-                                    <Typography fontWeight="bold">บ่าย</Typography>
-                                    <Typography variant="body2">
-                                        - {selectedRoutes?.eveningDetails}
-                                    </Typography>
-                                </Box>
-                            </Stack>
-                            <Stack direction="row" spacing={1} alignItems="flex-start" mb={2}>
-                                <DarkMode sx={{ mt: '4px' }} />
-                                <Box>
-                                    <Typography fontWeight="bold">เย็น</Typography>
-                                    <Typography variant="body2">
-                                        - {selectedRoutes?.afternoonDetails}
-                                    </Typography>
-                                </Box>
-                            </Stack>
-                            <Divider />
-                            <Stack direction="row" justifyContent="space-between" mt={2}>
-                                <Stack direction="row" spacing={1} alignItems="center">
-                                    <Person fontSize="small" />
-                                    <Typography variant="caption">Mr.{selectedRoutes?.User?.name}</Typography>
-                                </Stack>
-                                <Typography variant="caption">1 ปีที่แล้ว</Typography>
-                            </Stack>
-                        </CardContent>
-                    </Card>
+                                                <Stack direction="row" spacing={1} alignItems="flex-start" mb={1}>
+                                                    <AccessTime sx={{ mt: '4px' }} />
+                                                    <Box>
+                                                        <Typography fontWeight="bold">เช้า</Typography>
+                                                        <Typography variant="body2">
+                                                            - {route.morningDetails}
+                                                        </Typography>
+                                                    </Box>
+                                                </Stack>
+
+                                                <Stack direction="row" spacing={1} alignItems="flex-start" mb={1}>
+                                                    <WbSunny sx={{ mt: '4px' }} />
+                                                    <Box>
+                                                        <Typography fontWeight="bold">กลางวัน</Typography>
+                                                        <Typography variant="body2">
+                                                            - {route.middayDetails}
+                                                        </Typography>
+                                                    </Box>
+                                                </Stack>
+
+                                                <Stack direction="row" spacing={1} alignItems="flex-start" mb={1}>
+                                                    <WbSunny sx={{ mt: '4px' }} />
+                                                    <Box>
+                                                        <Typography fontWeight="bold">บ่าย</Typography>
+                                                        <Typography variant="body2">
+                                                            - {route.eveningDetails}
+                                                        </Typography>
+                                                    </Box>
+                                                </Stack>
+
+                                                <Stack direction="row" spacing={1} alignItems="flex-start" mb={2}>
+                                                    <DarkMode sx={{ mt: '4px' }} />
+                                                    <Box>
+                                                        <Typography fontWeight="bold">เย็น</Typography>
+                                                        <Typography variant="body2">
+                                                            - {route.afternoonDetails}
+                                                        </Typography>
+                                                    </Box>
+                                                </Stack>
+
+                                                <Divider />
+
+                                                <Stack direction="row" justifyContent="space-between" mt={2}>
+                                                    <Stack direction="row" spacing={1} alignItems="center">
+                                                        <Person fontSize="small" />
+                                                        <Typography variant="caption">
+                                                            Mr.{route?.User?.name}
+                                                        </Typography>
+                                                    </Stack>
+                                                    <Typography variant="caption">1 ปีที่แล้ว</Typography>
+                                                </Stack>
+                                            </CardContent>
+                                        </Card>
+                                    </Grid>
+                                ))
+                            }
+                        </>
+                        : (
+                            <Box display="flex" justifyContent="center" alignItems="center" height={500}>
+                                {/* <CircularProgress /> */}
+                                ยังไม่มีข้อมูลในฐานข้อมูล
+                            </Box>
+                        )
+                    }
                 </Grid>
                 {/* Details Table Section */}
 
@@ -477,28 +544,34 @@ function MainRoutes() {
 
                 {/* แสดง preview info_route */}
                 <Grid item xs={12}>
-
-                    <CardMedia
-                        component="img"
-                        src={`${BASE_URL}/${images[0]?.path || '/placeholder.jpg'}`}
-                        alt={images[0]?.filename}
-                        // loading="lazy"
-                        sx={{
-                            width: '100%',
-                            // height: 220,
-                            objectFit: 'cover',
-                            display: 'block',
-                            borderRadius: 12,
-                            // transition: 'opacity 0.3s ease-in-out', // จาง
-                            backgroundColor: '#f0f0f0',
-                        }}
-                    />
+                    {images?.length > 0 ?
+                        <CardMedia
+                            component="img"
+                            src={`${BASE_URL}/${images[0]?.path || '/placeholder.jpg'}`}
+                            alt={images[0]?.filename}
+                            // loading="lazy"
+                            sx={{
+                                width: '100%',
+                                // height: 220,
+                                objectFit: 'cover',
+                                display: 'block',
+                                borderRadius: 12,
+                                // transition: 'opacity 0.3s ease-in-out', // จาง
+                                backgroundColor: '#f0f0f0',
+                            }}
+                        />
+                        : (
+                            <Box display="flex" justifyContent="center" alignItems="center" height={500}>
+                                {/* <CircularProgress /> */}
+                                ยังไม่มีข้อมูลในฐานข้อมูล
+                            </Box>
+                        )}
                 </Grid>
 
                 {/* footer */}
                 <MainRouteFooter />
             </Grid>
-        </Container>
+        </Container >
     );
 }
 

@@ -23,6 +23,19 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
 function MainAddRoutes() {
+  const token = localStorage.getItem("token");
+  const name = localStorage.getItem("name");
+  const [district, setDistrict] = useState([]);
+  const [language, setLanguage] = useState([]);
+  const [travelType, setTravelType] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isDataReady, setIsDataReady] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // "success" | "error" | "warning" | "info"
+  const [images, setImages] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     language: "",
@@ -31,28 +44,10 @@ function MainAddRoutes() {
     did: "",
     ttid: "",
   });
-
-  const [district, setDistrict] = useState([]);
-  const [language, setLanguage] = useState([]);
-  const [travelType, setTravelType] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [isDataReady, setIsDataReady] = useState(false);
-
-  const token = localStorage.getItem("token");
-  const name = localStorage.getItem("name");
-
-  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [errorSnackbar, setErrorSnackbar] = useState({
     open: false,
     message: "",
   });
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // "success" | "error" | "warning" | "info"
-
-
-  const [images, setImages] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -163,6 +158,7 @@ function MainAddRoutes() {
       const res = await axios.post("http://localhost:8080/create_travel", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log("res.data", res.data);
 
       if (res.status === 200 && res.data?.id) {
         // Upload image
@@ -186,6 +182,14 @@ function MainAddRoutes() {
           setSnackbarSeverity("success");
           setImages([]);
           setSnackbarOpen(true); // <<== ต้องมี!
+          setFormData({
+            name: "",
+            language: "",
+            brandImage: "",
+            infographicImage: "",
+            ttid: "",
+          });
+
         } else {
           setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
           setSnackbarSeverity("error");

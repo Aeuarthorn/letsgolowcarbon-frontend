@@ -143,17 +143,17 @@
   ],
   "formats": [
     {
-      "id": "1day",
+      "id": "1",
       "name_th": "1 วัน",
       "name_en": "1 Day"
     },
     {
-      "id": "2d1n",
+      "id": "2",
       "name_th": "2 วัน 1 คืน",
       "name_en": "2 Days 1 Night"
     },
     {
-      "id": "3d2n",
+      "id": "3",
       "name_th": "3 วัน 2 คืน",
       "name_en": "3 Days 2 Nights"
     }

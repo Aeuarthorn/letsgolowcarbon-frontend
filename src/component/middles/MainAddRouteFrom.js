@@ -165,19 +165,6 @@ function MainAddRouteFrom() { // เพิ่มข้อมูลการเ�
         if (!data.tid) {
             return false;
         }
-
-
-        // if (!data.tid || !data.origin || !data.destination || !data.distanceKM || !Array.isArray(data.vehicles) || data.vehicles.length === 0) {
-        //     return false;
-        // }
-
-        // // ตรวจสอบแต่ละ vehicle ด้วย
-        // for (const v of data.vehicles) {
-        //     if (!v.name || !v.efficiency || !v.typeCar || !Array.isArray(v.fuelTypes) || v.fuelTypes.length === 0) {
-        //         return false;
-        //     }
-        // }
-
         return true;
     };
     const handleSubmit = async () => {

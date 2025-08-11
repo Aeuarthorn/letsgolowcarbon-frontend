@@ -202,7 +202,7 @@ function MainAddPlaces() {
             console.log("placeRes", placeRes);
 
             if (placeRes.status === 200 && placeRes.data?.id) {
-                // const newPlaceId = 1;
+                // const newPlaceId = 2;
                 const newPlaceId = placeRes.data.id;
                 const formData = new FormData();
                 // STEP 2: เตรียมอัปโหลดภาพ (image & video)
@@ -684,7 +684,7 @@ function MainAddPlaces() {
                 sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={initialLoading}
             >
-                <CircularProgress    color="inherit" />
+                <CircularProgress color="inherit" />
             </Backdrop>
         </Box>
 

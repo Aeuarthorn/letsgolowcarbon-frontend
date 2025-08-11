@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import Groups2Icon from '@mui/icons-material/Groups2';
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LoginIcon from "@mui/icons-material/Login";
@@ -38,20 +39,17 @@ import { useTranslation, I18nextProvider } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import resources from "../../i18n"; // Assuming your i18n.js file is in the parent directory
 import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 const AppBar = styled(MuiAppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
 }));
 
-export default function HeadPage({
-  screenWidth,
-  defaultTheme,
-  isAuthenticated,
-}) {
+export default function HeadPage({ screenWidth, defaultTheme, isAuthenticated, }) {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isMobile = screenWidth < 400;
-  const isIpad = screenWidth > 401 && screenWidth < 769;
+  const isIpad = screenWidth > 401 && screenWidth < 900;
   const prefix = isMobile ? "img-mobile" : isIpad ? "img-ipad" : "img-web";
 
   // State สำหรับเปิด dropdown แต่ละเมนู
@@ -61,18 +59,16 @@ export default function HeadPage({
   const [anchorLogin, setAnchorLogin] = useState(null);
   const [anchorSignin, setAnchorSignin] = useState(null);
   const [anchorMobileMenu, setAnchorMobileMenu] = useState(null); // สำหรับเมนูมือถือ
-
+  const [loading, setLoading] = useState(true);
+  const [travelType, setTravelType] = useState([]);
+  const [error, setError] = useState(null);
+  const BASE_URL = "http://localhost:8080";
+  const token = localStorage.getItem("token")
   const [languageData, setLanguageData] = useState(
     i18n.language === "th"
       ? resources?.store?.data?.th?.translation
       : resources?.store?.data?.en?.translation
   );
-  // const [rolesData, setRolesData] = useState(
-  //     i18n.language === 'th'
-  //         ? resources?.store?.data?.th?.translation?.roles
-  //         : resources?.store?.data?.en?.translation?.roles
-  // );
-
   const [language, setLanguage] = useState(i18n.language);
   const roleMap = {
     1: "admin",
@@ -81,10 +77,104 @@ export default function HeadPage({
     37: "guest", // ตัวอย่าง: บาง role อ่านได้ แต่เขียน/ลบไม่ได้
     // เพิ่มตามจริงจาก decoded.role ที่คุณมี
   };
-  const [role, setRole] = useState("guest");
+  const [role, setRole] = useState("");
+
+  const [hasToken, setHasToken] = useState(false);
+  const loadTravels = async () => {
+    setLoading(true);
+    setError(null); // ✅ Reset error state
+    try {
+      const travelTypes = await axios.get(`${BASE_URL}/travel_types_guest`);
+      console.log("✅ ดึงข้อมูลเส้นทางสำเร็จ:++++++++++", travelTypes.data);
+      setTravelType(travelTypes?.data || []);
+    } catch (error) {
+      console.error("❌ ดึงข้อมูลอำเภอล้มเหลว:", error);
+      setError("ไม่สามารถโหลดข้อมูลได้ในขณะนี้ โปรดลองใหม่อีกครั้ง"); // ✅ Set user-friendly error message
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     console.log("if");
+  //     return await loadTravels();
+  //   };
+
+  //   fetchData(); // เรียกใช้ async function ที่เราสร้างไว้
+  // }, []); // ✅ ใส่ did ใน dependency array ให้ถูก
+
+  // useEffect(() => {
+  //   // แก้ไขภาษาเมื่อมีการเปลี่ยนแปลง
+  //   const onLanguageChanged = (lng) => {
+  //     setLanguage(lng);
+  //     setLanguageData(
+  //       lng === "th"
+  //         ? resources?.store?.data?.th?.translation
+  //         : resources?.store?.data?.en?.translation
+  //     );
+  //   };
+
+  //   // ตั้งค่าภาษาเริ่มต้น
+  //   onLanguageChanged(i18n.language);
+
+  //   // ตรวจสอบ token และ decode JWT
+  //   const token = localStorage.getItem("token");
+  //   if (token) {
+  //     try {
+  //       const decoded = jwtDecode(token);
+  //       console.log("decoded.role++++++++", decoded.role);
+
+  //       const roleIds = Object.keys(decoded.role || {});
+  //       // เลือก role ID แรก หรือใช้ logic ที่เหมาะสมที่สุด
+  //       const firstRoleId = roleIds[0];
+  //       const roleName = roleMap[firstRoleId] || "guest";
+
+  //       setRole(roleName); // ✅ ตั้งค่า role ที่ใช้ใน JSX ได้เลย
+  //     } catch (err) {
+  //       // console.error("JWT decode failed", err);
+  //       setRole("guest");
+  //     }
+  //   }
+
+  //   // ตั้ง listener สำหรับการเปลี่ยนภาษา
+  //   i18n.on("languageChanged", onLanguageChanged);
+
+  //   return () => {
+  //     i18n.off("languageChanged", onLanguageChanged);
+  //   };
+  // }, [i18n, resources]);
+
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   if (token) {
+  //     setHasToken(true);
+  //     try {
+  //       const decoded = jwtDecode(token);
+  //       const roleIds = Object.keys(decoded.role || {});
+  //       const firstRoleId = roleIds[0];
+  //       const roleName = roleMap[firstRoleId] || "guest";
+  //       setRole(roleName);
+  //     } catch (err) {
+  //       console.error("JWT decode failed", err);
+  //       setRole("guest");
+  //     }
+  //   } else {
+  //     setHasToken(false);
+  //     setRole("guest");
+  //   }
+  // }, []);
+
+
 
   useEffect(() => {
-    // แก้ไขภาษาเมื่อมีการเปลี่ยนแปลง
+    const fetchData = async () => {
+      await loadTravels();
+    };
+
+    fetchData();
+
+    // ฟังก์ชันจัดการเปลี่ยนภาษา
     const onLanguageChanged = (lng) => {
       setLanguage(lng);
       setLanguageData(
@@ -94,26 +184,25 @@ export default function HeadPage({
       );
     };
 
-    // ตั้งค่าภาษาเริ่มต้น
     onLanguageChanged(i18n.language);
 
-    // ตรวจสอบ token และ decode JWT
-    const token = localStorage.getItem("token");
+    // ตรวจสอบ token และ decode role
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        console.log("decoded.role", decoded.role);
-
         const roleIds = Object.keys(decoded.role || {});
-        // เลือก role ID แรก หรือใช้ logic ที่เหมาะสมที่สุด
         const firstRoleId = roleIds[0];
         const roleName = roleMap[firstRoleId] || "guest";
-
-        setRole(roleName); // ✅ ตั้งค่า role ที่ใช้ใน JSX ได้เลย
+        setRole(roleName);
+        setHasToken(true);
       } catch (err) {
         console.error("JWT decode failed", err);
         setRole("guest");
+        setHasToken(false);
       }
+    } else {
+      setRole("guest");
+      setHasToken(false);
     }
 
     // ตั้ง listener สำหรับการเปลี่ยนภาษา
@@ -122,7 +211,8 @@ export default function HeadPage({
     return () => {
       i18n.off("languageChanged", onLanguageChanged);
     };
-  }, [i18n, resources]);
+  }, [i18n, resources, token]);
+
 
   // ฟังก์ชันเปิด/ปิด dropdown แต่ละเมนู
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
@@ -144,9 +234,11 @@ export default function HeadPage({
   const handleUserMenuOpen = (event) => setUserMenuAnchor(event.currentTarget);
   const handleUserMenuClose = () => setUserMenuAnchor(null);
 
+  // ฟังก์ชัน Logout ลบ token และ reset role, hasToken
   const Logout = () => {
     localStorage.removeItem("token");
     setRole("guest");
+    setHasToken(false);
     handleUserMenuClose();
     navigate("/");
   };
@@ -187,17 +279,6 @@ export default function HeadPage({
       label: t("contact"),
       icon: <ContactMailIcon fontSize="small" />,
     },
-    // {
-    //   type: "login",
-    //   label: t("login"),
-    //   icon: <ContactMailIcon fontSize="small" />,
-    // },
-    // {
-    //   type: "signin",
-    //   label: t("signin"),
-    //   icon: <ContactMailIcon fontSize="small" />,
-    // },
-    // { type: 'roles', label: t('role'), icon: <ContactMailIcon fontSize="small" /> },
   ];
 
   return (
@@ -216,6 +297,7 @@ export default function HeadPage({
               px: 2,
             }}
           >
+            {/* มือถือ */}
             {isMobile || isIpad ? (
               <Box
                 sx={{
@@ -274,21 +356,39 @@ export default function HeadPage({
                   <MenuItem disabled sx={{ opacity: 0.8 }}>
                     {t("format")}
                   </MenuItem>
-                  {languageData?.formats?.map((format, idx) => (
-                    <MenuItem
-                      key={`format-${idx}`}
-                      sx={{ pl: 4 }}
-                      onClick={() => {
-                        navigate(`/format/${format?.id}`);
-                        setAnchorMobileMenu(null);
-                      }}
-                    >
-                      {i18n.language === "th"
-                        ? format?.name_th
-                        : format?.name_en}
-                    </MenuItem>
-                  ))}
+                  {travelType?.map((format) => {
+                    console.log("format", format);
 
+                    return (
+                      <MenuItem
+                        key={`format-${format.ttid}`}
+                        sx={{ pl: 4 }}
+                        onClick={() => {
+                          // navigate(`/format/${format.ttid}`); // ส่ง ttid ไป
+                          navigate(`/format/${format.ttid}?name=${encodeURIComponent(format.name)}`);
+                          setAnchorMobileMenu(null);
+                        }}
+                      >
+                        {format.name}
+                      </MenuItem>
+                    )
+                  })}
+                  {/* กลุ่มท่องเที่ยว */}
+                  {(hasToken && role === "guest") && (
+                    <>
+                      <MenuItem
+                        onClick={() => {
+                          navigate("/tour");
+                          setAnchorMobileMenu(null);
+                        }}
+                      >
+                        <Groups2Icon fontSize="small" sx={{ mr: 1 }} />
+                        {/* {t("about")} */}
+                        กลุ่มท่องเที่ยว
+                      </MenuItem>
+                    </>
+                  )}
+                  {/* เกี่ยวกับ */}
                   <MenuItem
                     onClick={() => {
                       navigate("/about");
@@ -298,7 +398,7 @@ export default function HeadPage({
                     <InfoIcon fontSize="small" sx={{ mr: 1 }} />
                     {t("about")}
                   </MenuItem>
-
+                  {/* ช่องทางการติดต่อ */}
                   <MenuItem
                     onClick={() => {
                       navigate("/contact");
@@ -313,6 +413,7 @@ export default function HeadPage({
                   <MenuItem disabled sx={{ opacity: 0.8 }}>
                     {t("language")}
                   </MenuItem>
+                  {/* ไทย */}
                   <MenuItem
                     onClick={() => {
                       changeLanguage("th");
@@ -343,6 +444,7 @@ export default function HeadPage({
                       <Typography variant="body2">ไทย</Typography>
                     </Box>
                   </MenuItem>
+                  {/* อังกฤษ */}
                   <MenuItem
                     onClick={() => {
                       changeLanguage("en");
@@ -373,6 +475,7 @@ export default function HeadPage({
                       <Typography variant="body2">English</Typography>
                     </Box>
                   </MenuItem>
+                  {/* select guest */}
                   <MenuItem disabled sx={{ opacity: 0.8 }}>
                     {t("format")}
                   </MenuItem>
@@ -388,9 +491,8 @@ export default function HeadPage({
                   >
                     {t("current_role")}: <strong>{t(role || "guest")}</strong>
                   </MenuItem>
-                  {/* เมนูเพิ่มข้อมูล (เฉพาะ admin/user เท่านั้น) */}
-                  {/* ถ้าเป็น guest ให้แสดงปุ่ม login + signup */}
-                  {!role || role === "guest" ? (
+                  {/* role for user */}
+                  {(!hasToken && role === "guest") ? (
                     <>
                       <MenuItem
                         onClick={() => {
@@ -401,43 +503,22 @@ export default function HeadPage({
                         <LoginIcon fontSize="small" sx={{ mr: 1 }} />
                         {t("login")}
                       </MenuItem>
-                      <MenuItem
-                        onClick={() => {
-                          navigate("/signup");
-                          setAnchorMobileMenu(null);
-                        }}
-                      >
-                        <PersonAddIcon fontSize="small" sx={{ mr: 1 }} />
-                        {t("signup")}
-                      </MenuItem>
                     </>
-                  ) : (
+                  ) : (hasToken && role === "guest") && (
                     <>
-                      {/* เพิ่มข้อมูล (เฉพาะ admin/user) */}
-                      {["admin", "user"].includes(role) && (
-                        <MenuItem
-                          onClick={() => {
-                            navigate("/add");
-                            setAnchorMobileMenu(null);
-                          }}
-                        >
-                          <AddCircleIcon fontSize="small" sx={{ mr: 1 }} />
-                          {t("add_data")}
-                        </MenuItem>
-                      )}
-
-                      {/* Logout */}
                       <MenuItem
                         onClick={() => {
-                          fetch("/api/logout", { method: "POST" }).then(() => {
-                            localStorage.removeItem("token");
-                            setRole("guest");
+                          localStorage.removeItem("token");  // ลบ token ออกจาก storage
+                          setLoading(true);                   // เริ่มแสดง loading
+                          handleLoginMenuClose();
+                          // รอโหลดหน้านิดนึงก่อน navigate (เช่น 500ms)
+                          setTimeout(() => {
+                            setLoading(false);                // ปิด loading
                             navigate("/");
-                          });
-                          setAnchorMobileMenu(null);
+                          }, 1500);
                         }}
                       >
-                        <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+                        <LoginIcon fontSize="small" sx={{ mr: 1 }} />
                         {t("logout")}
                       </MenuItem>
                     </>
@@ -446,6 +527,7 @@ export default function HeadPage({
               </Box>
             ) : (
               <>
+                {/* desktop */}
                 <img src={logo} alt="Logo" style={{ height: 45 }} />
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   {menuItems.map((item, idx) => (
@@ -485,6 +567,28 @@ export default function HeadPage({
                       {item.label}
                     </Button>
                   ))}
+                  {/* กลุ่มท่องเที่ยว */}
+                  {(hasToken && role === "guest") && (
+                    <IconButton
+                      color="inherit"
+                      onClick={() => {
+                        navigate("/tour"); // ไปหน้ากลุ่มท่องเที่ยว
+                      }}
+                      sx={{
+                        mx: 0.5,
+                        borderRadius: 2,
+                        transition: "background-color 0.3s ease",
+                        "&:hover": { backgroundColor: "rgba(255,0,0,0.2)" },
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ mr: 0.5 }}>
+                        {/* {t("language")} */}
+                        กลุ่มท่องเที่ยว
+                      </Typography>
+                      <Groups2Icon fontSize="small" />
+                    </IconButton>
+                  )}
+                  {/* ภาษา */}
                   <IconButton
                     color="inherit"
                     onClick={handleLangOpen}
@@ -500,7 +604,9 @@ export default function HeadPage({
                     </Typography>
                     <LanguageIcon fontSize="small" />
                   </IconButton>
-                  {role === "guest" ? (
+
+                  {/* guest, guest have token */}
+                  {(!hasToken && role === "guest") ? (
                     <>
                       <Button
                         color="inherit"
@@ -513,7 +619,6 @@ export default function HeadPage({
                         sx={{
                           borderRadius: 2,
                           textTransform: "none",
-                          // fontSize: "1rem",
                           mx: 0.5,
                         }}
                         endIcon={<KeyboardArrowDownIcon fontSize="small" />}
@@ -537,19 +642,46 @@ export default function HeadPage({
                           <LoginIcon fontSize="small" sx={{ mr: 1 }} />
                           {t("login")}
                         </MenuItem>
+                      </Menu>
+                    </>
+                  ) : (hasToken && role === "guest") ? (
+                    <>
+                      {/* not token  */}
+                      <Button
+                        color="inherit"
+                        startIcon={<AccountCircleIcon />}
+                        onClick={handleLoginMenuOpen}
+                        sx={{ borderRadius: 2, textTransform: "none", mx: 0.5 }}
+                        endIcon={<KeyboardArrowDownIcon fontSize="small" />}
+                      >
+                        {t("guest")}
+                      </Button>
+                      <Menu
+                        anchorEl={loginMenuAnchor}
+                        open={Boolean(loginMenuAnchor)}
+                        onClose={handleLoginMenuClose}
+                      >
                         <MenuItem
                           onClick={() => {
-                            navigate("/signup");
+                            localStorage.removeItem("token");  // ลบ token ออกจาก storage
+                            setLoading(true);
+                            navigate("/");
                             handleLoginMenuClose();
+                            // รอโหลดหน้านิดนึงก่อน navigate (เช่น 500ms)
+                            setTimeout(() => {
+                              setLoading(false);                // ปิด loading
+                              navigate("/");
+                            }, 1500);
                           }}
                         >
-                          <PersonAddIcon fontSize="small" sx={{ mr: 1 }} />
-                          {t("signup")}
+                          <LoginIcon fontSize="small" sx={{ mr: 1 }} />
+                          {t("logout")}
                         </MenuItem>
                       </Menu>
                     </>
                   ) : (
                     <>
+                      {/* role admin, user */}
                       <Button
                         color="inherit"
                         startIcon={<AccountCircleIcon />}
@@ -588,10 +720,10 @@ export default function HeadPage({
                 </Box>
               </>
             )}
-
             {/* เมนู dropdown: Desktop */}
             {!isMobile && (
               <>
+                {/* แนะนำเส้นทาง */}
                 <Menu
                   anchorEl={anchorEl}
                   open={Boolean(anchorEl)}
@@ -612,32 +744,35 @@ export default function HeadPage({
                     </MenuItem>
                   ))}
                 </Menu>
-
+                {/* รูปแบบ */}
                 <Menu
                   anchorEl={anchorElBaab}
                   open={Boolean(anchorElBaab)}
                   onClose={handleMenuCloseBaab}
                 >
-                  {languageData?.formats?.map((format, index) => (
-                    <MenuItem
-                      key={index}
-                      sx={{ pl: 4 }}
-                      onClick={() => {
-                        setAnchorElBaab(null);
-                        navigate(`/format/${format?.id}`);
-                      }}
-                    >
-                      {i18n.language === "th"
-                        ? format?.name_th
-                        : format?.name_en}
-                    </MenuItem>
-                  ))}
+                  {/* Submenu: รูปแบบ */}
+                  {travelType?.map((format) => {
+                    return (
+                      <MenuItem
+                        key={`format-${format.ttid}`}
+                        sx={{ pl: 4 }}
+                        onClick={() => {
+                          navigate(`/format/${format.ttid}?name=${encodeURIComponent(format.name)}`);
+                          setAnchorElBaab(null);
+                        }}
+                      >
+                        {format.name}
+                      </MenuItem>
+                    )
+                  })}
                 </Menu>
+                {/* ภาษา */}
                 <Menu
                   anchorEl={anchorLang}
                   open={Boolean(anchorLang)}
                   onClose={handleLangClose}
                 >
+                  {/* ไทย */}
                   <MenuItem
                     onClick={() => {
                       changeLanguage("th");
@@ -669,6 +804,7 @@ export default function HeadPage({
                       <Typography variant="body2">ไทย</Typography>
                     </Box>
                   </MenuItem>
+                  {/* อังกฤษห */}
                   <MenuItem
                     onClick={() => {
                       changeLanguage("en");
@@ -703,8 +839,8 @@ export default function HeadPage({
               </>
             )}
           </Toolbar>
-        </AppBar>
-      </Box>
-    </ThemeProvider>
+        </AppBar >
+      </Box >
+    </ThemeProvider >
   );
 }

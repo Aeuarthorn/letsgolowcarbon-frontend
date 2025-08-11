@@ -24,10 +24,11 @@ const TravelPlanner = ({ data }) => {
         // ... (ส่วนบนของ component เหมือนเดิม)
         <Grid item xs={12}>
             {/* <Card sx={{ p: 2, borderRadius: 4, boxShadow: 3 }}> */}
-            {/* <Typography variant="h5" component="h2" align="center" gutterBottom>
-                    ตารางค่าใช้จ่ายและค่า CO2e
-                </Typography> */}
+            <Typography component="h2" align="left" gutterBottom>
+                *ราคาน้ำมันวันที่ 10 ตุลาคม 2567
+            </Typography>
             <TableContainer component={Paper} sx={{ mt: 2, border: '1px solid', borderColor: 'grey.300' }}>
+
                 <Table sx={{ minWidth: 650 }} aria-label="simple table">
                     <TableHead>
                         <TableRow>

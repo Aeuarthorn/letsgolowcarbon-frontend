@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import MainPage from "./component/view/MainPage";
 import DistrictPage from "./component/view/DistrictPage";
@@ -15,7 +15,6 @@ import { createTheme } from "@mui/material";
 // import MainRouteUbolratOne from "./component/view/routes/route_ubolrat/MainRouteUbolratOne";
 // import MainRouteUbolratTwo from "./component/view/routes/route_ubolrat/MainRouteUbolratTwo";
 import MainRoutes from "./component/view/routes/MainRoutes";
-import MainRoutePlace from "./component/view/routes/MainRoutePlace";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import LoginPage from "./LoginPage";
 import SignUpPage from "./SignUpPage";
@@ -26,6 +25,9 @@ import TermofService from "./component/view/TermofService";
 import PrivacyPolicy from "./component/view/PrivacyPolicy"
 import PlacesList from "./component/view/places/PlacesList";
 import PlacesDetails from "./component/view/places/PlacesDetails";
+import MainTravelTypes from "./component/view/traveltypes/MainTravelTypes";
+import ResetPasswordPage from "./ResetPasswordPage";
+import MainGroupTourPage from "./component/view/grouptour/MainGroupTourPage";
 
 const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -49,6 +51,13 @@ export default function App() {
   const [role, setRole] = useState("guest"); // กำหนด default เป็น guest เลย
   const [loadingRole, setLoadingRole] = useState(true);
 
+  // ใช้ useRef เก็บสถานะล่าสุดของ showHeader เพื่อใช้ใน handler scroll
+  const showHeaderRef = useRef(showHeader);
+
+  useEffect(() => {
+    showHeaderRef.current = showHeader;
+  }, [showHeader]);
+
   useEffect(() => {
     // ฟังก์ชันดึง role user
     const fetchUserRole = async () => {
@@ -70,20 +79,25 @@ export default function App() {
         setLoadingRole(false);
       }
     };
-
     fetchUserRole();
+
 
     let lastScrollTop = window.scrollY;
 
-    const handleScroll = () => {
+    // debounce ฟังก์ชันเพื่อจำกัดความถี่การเรียก setShowHeader
+    const handleScroll = debounce(() => {
       const scrollTop = window.scrollY;
-      if (scrollTop < 100 || scrollTop < lastScrollTop) {
+
+      if ((scrollTop < 100 || scrollTop < lastScrollTop) && !showHeaderRef.current) {
         setShowHeader(true);
-      } else {
+      } else if (!(scrollTop < 100 || scrollTop < lastScrollTop) && showHeaderRef.current) {
         setShowHeader(false);
       }
+
       lastScrollTop = Math.max(scrollTop, 0);
-    };
+    }, 100); // 100ms delay
+
+
 
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
@@ -96,7 +110,9 @@ export default function App() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
+      handleScroll.cancel(); // ยกเลิก debounce ตอน unmount
     };
+
   }, []);
 
   if (loadingRole) return <div>Loading...</div>;
@@ -156,11 +172,41 @@ export default function App() {
             }
           />
           <Route
+            path="/format/:ttid"
+            element={
+              <ProtectedRoute
+                element={
+                  <MainTravelTypes
+                    screenWidth={screenWidth}
+                    defaultTheme={defaultTheme}
+                  />
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          <Route
             path="/contact"
             element={
               <ProtectedRoute
                 element={
                   <Contact
+                    screenWidth={screenWidth}
+                    defaultTheme={defaultTheme}
+                  />
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          <Route
+            path="/tour"
+            element={
+              <ProtectedRoute
+                element={
+                  <MainGroupTourPage
                     screenWidth={screenWidth}
                     defaultTheme={defaultTheme}
                   />
@@ -223,6 +269,19 @@ export default function App() {
                 <Navigate to="/" replace />
               ) : (
                 <LoginPage
+                  screenWidth={screenWidth}
+                  defaultTheme={defaultTheme}
+                />
+              )
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              role !== "guest" ? (
+                <Navigate to="/" replace />
+              ) : (
+                <ResetPasswordPage
                   screenWidth={screenWidth}
                   defaultTheme={defaultTheme}
                 />

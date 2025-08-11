@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Mian_District from './districts/Mian_District';
 import axios from 'axios';
+import { Box } from '@mui/material';
 
 function DistrictPage({ screenWidth, defaultTheme }) {
     const { id } = useParams();
@@ -21,12 +22,6 @@ function DistrictPage({ screenWidth, defaultTheme }) {
     };
 
     useEffect(() => {
-        if (!districtMap[id]) {
-            setError('404: District not found');
-            setLoading(false);
-            return;
-        }
-
         const fetchDistrictData = async () => {
             try {
                 setLoading(true);
@@ -39,7 +34,6 @@ function DistrictPage({ screenWidth, defaultTheme }) {
                     },
                 });
                 console.log("resDistrict.data", resDistrict.data);
-
                 setDistrictData(resDistrict.data);
             } catch (err) {
                 setError(err.message);
@@ -47,18 +41,16 @@ function DistrictPage({ screenWidth, defaultTheme }) {
                 setLoading(false);
             }
         };
-       
-
         fetchDistrictData();
-    }, [id]);
+    }, []);
 
-    if (loading) {
-        return <div style={{ padding: '2rem' }}>กำลังโหลดข้อมูล...</div>;
-    }
+    // if (loading) {
+    //     return <div style={{ padding: '2rem' }}>กำลังโหลดข้อมูล...</div>;
+    // }
 
-    if (error) {
-        return <div style={{ color: 'red', padding: '2rem' }}>{error}</div>;
-    }
+    // if (error) {
+    //     return <div style={{ color: 'red', padding: '2rem' }}>{error}</div>;
+    // }
 
 
     return (

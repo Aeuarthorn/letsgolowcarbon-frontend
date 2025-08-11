@@ -13,6 +13,7 @@ import MainAddLanguages from "../middles/MainAddLanguages";
 import FuelTable from "../middles/FuelTable";
 import MainAddRouteFrom from "../middles/MainAddRouteFrom";
 import MainAddVehicles from "../middles/MainAddVehicles";
+import MainAddVideoDistrict from "../middles/MainAddVideoDistrict";
 
 
 const drawerWidth = 260;
@@ -53,6 +54,9 @@ function MainAdmin({ screenWidth, defaultTheme }) {
       case "addRouteDistrictName":
         navigate("/admin/add/district");
         break;
+      case "addRouteDistrictVideo":
+        navigate("/admin/add/districtvideo");
+        break;
       case "addLanguage":
         navigate("/admin/add/addLanguage");
         break;
@@ -82,6 +86,7 @@ function MainAdmin({ screenWidth, defaultTheme }) {
           <Route path="/add/route/addroutedetails" element={<MainAddRouteDetails />} />
           <Route path="/add/form/addtraveltype" element={<MaiAddFormOfTravel />} />
           <Route path="/add/district" element={<MainAddDistrict />} />
+          <Route path="/add/districtvideo" element={<MainAddVideoDistrict />} />
           <Route path="/add/addLanguage" element={<MainAddLanguages />} />
           <Route path="/add/addFuel" element={<FuelTable />} />
           {/* <Route path="/add/addvehicleEfficiency" element={<MainAddVehicles />} /> */}
