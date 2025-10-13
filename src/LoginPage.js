@@ -183,6 +183,7 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import logo from "./component/logo/icon_new.png";
 import { useTranslation } from "react-i18next";
+import { login } from "./component/api/API";
 
 function LoginPage({ onLoginSuccess }) {
   const navigate = useNavigate();
@@ -193,7 +194,7 @@ function LoginPage({ onLoginSuccess }) {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/login", {
+      const res = await fetch(login, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

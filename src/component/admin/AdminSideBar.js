@@ -32,7 +32,7 @@ const drawerWidth = 300;
 
 function AdminSideBar({ selected, onSelect }) {
     const navigate = useNavigate();
-
+    const role = localStorage.getItem("role");
     const handleLogout = () => {
         // ล้าง session (เช่น token หรือ cookie แล้วแต่ระบบคุณ)
         fetch("/api/logout", { method: "POST" }); // หากมี API logout
@@ -101,149 +101,193 @@ function AdminSideBar({ selected, onSelect }) {
                 {/* เมนูหลัก */}
                 <Box sx={{ overflowY: "auto", px: 1 }}>
                     {/* เพิ่มเส้นทาง */}
-                    <Accordion
-                        sx={{
-                            bgcolor: "#21AC2A",
-                            color: "white",
-                            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
-                            borderRadius: 1, // มุมมนเล็กน้อย (optional)
-                        }}
-                        defaultExpanded
-                    >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
-                            <Typography>เพิ่มข้อมูล</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <List dense>
-                                <ListItem button onClick={() => onSelect("addRouteDistrictName")}>
-                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มชื่ออำเภอ" />
-                                </ListItem>
-                            </List>
-                            <List dense>
-                                <ListItem button onClick={() => onSelect("addRouteDistrictVideo")}>
-                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มวิดีโออำเภอ" />
-                                </ListItem>
-                            </List>
-                            <List dense>
-                                <ListItem button onClick={() => onSelect("addLanguage")}>
-                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มภาษา" />
-                                </ListItem>
-                            </List>
-                            <List dense>
-                                <ListItem button onClick={() => onSelect("addFuel")}>
-                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มน้ำมัน" />
-                                </ListItem>
-                            </List>
-                            {/* <List dense>
+                    {role === "admin" && (
+                        <>
+                            <Accordion
+                                sx={{
+                                    bgcolor: "#21AC2A",
+                                    color: "white",
+                                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
+                                    borderRadius: 1, // มุมมนเล็กน้อย (optional)
+                                }}
+                                defaultExpanded
+                            >
+                                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
+                                    <Typography>เพิ่มข้อมูล</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("addRouteDistrictName")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มชื่ออำเภอ" />
+                                        </ListItem>
+                                    </List>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("addRouteDistrictVideo")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มวิดีโออำเภอ" />
+                                        </ListItem>
+                                    </List>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("addLanguage")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มภาษา" />
+                                        </ListItem>
+                                    </List>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("addFuel")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มน้ำมัน" />
+                                        </ListItem>
+                                    </List>
+                                    {/* <List dense>
                                 <ListItem button onClick={() => onSelect("addvehicleEfficiency")}>
                                     <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
                                     <ListItemText primary="เพิ่มยานพาหนะ" />
                                 </ListItem>
                             </List> */}
-                            <List dense>
-                                <ListItem button onClick={() => onSelect("addtravelDataWithVehicles")}>
-                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มข้อมูลการเดินทางแบบใหม่" />
-                                </ListItem>
-                            </List>
-                        </AccordionDetails>
-                    </Accordion>
-                    {/* เพิ่มเส้นทาง */}
-                    <Accordion
-                        sx={{
-                            bgcolor: "#21AC2A",
-                            color: "white",
-                            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
-                            borderRadius: 1, // มุมมนเล็กน้อย (optional)
-                        }}
-                        defaultExpanded
-                    >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
-                            <Typography>เพิ่มเส้นทาง (คำนวณ Co2e)</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <List dense>
-                                <ListItem button onClick={() => onSelect("addRouteName")}>
-                                    <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มชื่อ Route" />
-                                </ListItem>
-                                <ListItem button onClick={() => onSelect("addRouteMap")}>
-                                    <ListItemIcon><Map sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มแผนที่ Route" />
-                                </ListItem>
-                                <ListItem button onClick={() => onSelect("addRouteDetail")}>
-                                    <ListItemIcon><Info sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มรายละเอียด Route" />
-                                </ListItem>
-                            </List>
-                        </AccordionDetails>
-                    </Accordion>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("addtravelDataWithVehicles")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มข้อมูลการเดินทางแบบใหม่" />
+                                        </ListItem>
+                                    </List>
+                                </AccordionDetails>
+                            </Accordion>
+                            {/* การแก้ไขข้อมูล */}
+                            <Accordion
+                                sx={{
+                                    bgcolor: "#dcfc26ff",
+                                    // color: "white",
+                                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
+                                    borderRadius: 1, // มุมมนเล็กน้อย (optional)
+                                }}
+                                defaultExpanded
+                            >
+                                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{}} />}>
+                                    <Typography>แก้ไขข้อมูล</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("editimagesandvdo")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "black" }} /></ListItemIcon>
+                                            <ListItemText primary="แก้ไขรูปภาพแบรนเนอร์จังหวัด" />
+                                        </ListItem>
+                                    </List>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("editimagebranner")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "black" }} /></ListItemIcon>
+                                            <ListItemText primary="แก้ไขรูปภาพแบรนเนอร์เส้นทาง" />
+                                        </ListItem>
+                                    </List>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("editimageinfographic")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "black" }} /></ListItemIcon>
+                                            <ListItemText primary="แก้ไขรูปภาพอินโฟกราฟฟิก" />
+                                        </ListItem>
+                                    </List>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("editimagedetailplace")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "black" }} /></ListItemIcon>
+                                            <ListItemText primary="แก้ไขรูปภาพรายละเอียดสถานที่" />
+                                        </ListItem>
+                                    </List>
+                                </AccordionDetails>
+                            </Accordion>
+                            {/* เพิ่มเส้นทาง */}
+                            <Accordion
+                                sx={{
+                                    bgcolor: "#21AC2A",
+                                    color: "white",
+                                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
+                                    borderRadius: 1, // มุมมนเล็กน้อย (optional)
+                                }}
+                                defaultExpanded
+                            >
+                                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
+                                    <Typography>เพิ่มเส้นทาง (คำนวณ Co2e)</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("addRouteName")}>
+                                            <ListItemIcon><AddCircle sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มชื่อ Route" />
+                                        </ListItem>
+                                        <ListItem button onClick={() => onSelect("addRouteMap")}>
+                                            <ListItemIcon><Map sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มแผนที่ Route" />
+                                        </ListItem>
+                                        <ListItem button onClick={() => onSelect("addRouteDetail")}>
+                                            <ListItemIcon><Info sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มรายละเอียด Route" />
+                                        </ListItem>
+                                    </List>
+                                </AccordionDetails>
+                            </Accordion>
+                            {/* เพิ่มสถานที่ */}
 
-                    {/* เพิ่มสถานที่ */}
-                    <Accordion
-                        sx={{
-                            bgcolor: "#21AC2A",
-                            color: "white",
-                            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
-                            borderRadius: 1, // มุมมนเล็กน้อย (optional)
-                        }}
-                        defaultExpanded
-                    >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
-                            <Typography>เพิ่มสถานที่</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <List dense>
-                                <ListItem button onClick={() => onSelect("touristPlace")}>
-                                    <ListItemIcon><Place sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มสถานที่ท่องเที่ยว" />
-                                </ListItem>
-                                <ListItem button onClick={() => onSelect("homestay")}>
-                                    <ListItemIcon><Hotel sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มที่พัก" />
-                                </ListItem>
-                                <ListItem button onClick={() => onSelect("restaurant")}>
-                                    <ListItemIcon><Restaurant sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มร้านอาหาร" />
-                                </ListItem>
-                                <ListItem button onClick={() => onSelect("souvenir")}>
-                                    <ListItemIcon><ShoppingBag sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มร้านของที่ระลึก" />
-                                </ListItem>
-                                <ListItem button onClick={() => onSelect("communityProduct")}>
-                                    <ListItemIcon><LocalOffer sx={{ color: "#76ff03" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มผลิตภัณฑ์ชุมชน" />
-                                </ListItem>
-                            </List>
-                        </AccordionDetails>
-                    </Accordion>
+                            <Accordion
+                                sx={{
+                                    bgcolor: "#21AC2A",
+                                    color: "white",
+                                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
+                                    borderRadius: 1, // มุมมนเล็กน้อย (optional)
+                                }}
+                                defaultExpanded
+                            >
+                                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
+                                    <Typography>เพิ่มสถานที่</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("touristPlace")}>
+                                            <ListItemIcon><Place sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มสถานที่ท่องเที่ยว" />
+                                        </ListItem>
+                                        <ListItem button onClick={() => onSelect("homestay")}>
+                                            <ListItemIcon><Hotel sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มที่พัก" />
+                                        </ListItem>
+                                        <ListItem button onClick={() => onSelect("restaurant")}>
+                                            <ListItemIcon><Restaurant sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มร้านอาหาร" />
+                                        </ListItem>
+                                        <ListItem button onClick={() => onSelect("souvenir")}>
+                                            <ListItemIcon><ShoppingBag sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มร้านของที่ระลึก" />
+                                        </ListItem>
+                                        <ListItem button onClick={() => onSelect("communityProduct")}>
+                                            <ListItemIcon><LocalOffer sx={{ color: "#76ff03" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มผลิตภัณฑ์ชุมชน" />
+                                        </ListItem>
+                                    </List>
+                                </AccordionDetails>
+                            </Accordion>
 
-                    {/* ตั้งค่า */}
-                    <Accordion
-                        sx={{
-                            bgcolor: "#21AC2A",
-                            color: "white",
-                            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
-                            borderRadius: 1, // มุมมนเล็กน้อย (optional)
-                        }}
-                        defaultExpanded
-                    >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
-                            <Typography>ตั้งค่าเมนู</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <List dense>
-                                <ListItem button onClick={() => onSelect("addTravelType")}>
-                                    <ListItemIcon><Image sx={{ color: "white" }} /></ListItemIcon>
-                                    <ListItemText primary="เพิ่มรูปแบบการท่องเที่ยว" />
-                                </ListItem>
-                            </List>
-                        </AccordionDetails>
-                    </Accordion>
+                            {/* ตั้งค่า */}
+                            <Accordion
+                                sx={{
+                                    bgcolor: "#21AC2A",
+                                    color: "white",
+                                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // เงา
+                                    borderRadius: 1, // มุมมนเล็กน้อย (optional)
+                                }}
+                                defaultExpanded
+                            >
+                                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
+                                    <Typography>ตั้งค่าเมนู</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <List dense>
+                                        <ListItem button onClick={() => onSelect("addTravelType")}>
+                                            <ListItemIcon><Image sx={{ color: "white" }} /></ListItemIcon>
+                                            <ListItemText primary="เพิ่มรูปแบบการท่องเที่ยว" />
+                                        </ListItem>
+                                    </List>
+                                </AccordionDetails>
+                            </Accordion>
+                        </>
+                    )}
                 </Box>
             </Box>
 

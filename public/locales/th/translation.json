@@ -17,73 +17,91 @@
   "route_mueang": [
     {
       "id": 1,
-      "name": "เส้นทางที่ 1 อำเภอเมือง",
-      "image": "/img-web/route1.jpg"
+      "name": "เส้นทางที่ 1 อำเภอเมือง"
     },
     {
       "id": 2,
-      "name": "เส้นทางที่ 2 อำเภอเมือง",
-      "image": "/img-web/route2.jpg"
+      "name": "เส้นทางที่ 2 อำเภอเมือง"
     },
     {
       "id": 3,
-      "name": "เส้นทางที่ 3 อำเภอเมือง",
-      "image": "/img-web/route3.jpg"
+      "name": "เส้นทางที่ 3 อำเภอเมือง"
     }
   ],
   "route_phu_pha_man": [
     {
       "id": 1,
-      "name": "เส้นทางที่ 1 อำเภอภูผาม่าน",
-      "image": "/img-web/route1.jpg"
+      "name": "เส้นทางที่ 1 อำเภอภูผาม่าน"
     },
     {
       "id": 2,
-      "name": "เส้นทางที่ 2 อำเภอภูผาม่าน",
-      "image": "/img-web/route2.jpg"
+      "name": "เส้นทางที่ 2 อำเภอภูผาม่าน"
     }
   ],
   "route_ubolrat": [
     {
       "id": 1,
-      "name": "เส้นทางที่ 1 อำเภออุบลรัตน์",
-      "image": "/img-web/route1.jpg"
+      "name": "เส้นทางที่ 1 อำเภออุบลรัตน์"
     },
     {
       "id": 2,
-      "name": "เส้นทางที่ 2 อำเภออุบลรัตน์",
-      "image": "/img-web/route2.jpg"
+      "name": "เส้นทางที่ 2 อำเภออุบลรัตน์"
     }
   ],
   "route_phu_wiang": [
     {
       "id": 1,
-      "name": "เส้นทางที่ 1 อำเภอภูเวียง",
-      "image": "/img-web/route1.jpg"
+      "name": "เส้นทางที่ 1 อำเภอภูเวียง"
     }
   ],
   "route_nam_phong": [
     {
       "id": 1,
-      "name": "เส้นทางที่ 1 อำเภอน้ำพอง",
-      "image": "/img-web/route1.jpg"
+      "name": "เส้นทางที่ 1 อำเภอน้ำพอง"
     },
     {
       "id": 2,
-      "name": "เส้นทางที่ 2 อำเภอน้ำพอง",
-      "image": "/img-web/route2.jpg"
+      "name": "เส้นทางที่ 2 อำเภอน้ำพอง"
     }
   ],
   "route_si_chomphu": [
     {
       "id": 1,
-      "name": "เส้นทางที่ 1 อำเภอสีชมพู",
-      "image": "/img-web/route1.jpg"
+      "name": "เส้นทางที่ 1 อำเภอสีชมพู"
     },
     {
       "id": 2,
-      "name": "เส้นทางที่ 2 อำเภอสีชมพู",
-      "image": "/img-web/route2.jpg"
+      "name": "เส้นทางที่ 2 อำเภอสีชมพู"
+    }
+  ],
+  "route_suankwang": [
+    {
+      "id": 1,
+      "name": "Route 1 - อำเภอเขาสวนกวาง"
+    },
+    {
+      "id": 2,
+      "name": "Route 2 - อำเภอเขาสวนกวาง"
+    }
+  ],
+  "route_ban_phai": [
+    {
+      "id": 1,
+      "name": "Route 1 - อำเภอบ้านไผ่"
+    },
+    {
+      "id": 2,
+      "name": "Route 2 - อำเภอบ้านไผ่"
+    }
+  ],
+  "route_phon": [
+    {
+      "id": 1,
+      "name": "Route 1 - Phon District"
+    },
+    {
+      "id": 2,
+      "name": "Route 2 - Phon District"
     }
   ],
   "districts": [
@@ -96,32 +114,50 @@
     {
       "id": "phu_pha_man",
       "name_th": "อำเภอภูผาม่าน",
-      "name_en": "Phu Pha Man",
+      "name_en": "Phu Pha Man District",
       "icon": "district-2.png"
     },
     {
       "id": "ubonrat",
       "name_th": "อำเภออุบลรัตน์",
-      "name_en": "Ubolratana",
+      "name_en": "Ubolratana District",
       "icon": "district-3.png"
     },
     {
       "id": "phu_wiang",
       "name_th": "อำเภอภูเวียง",
-      "name_en": "Phu Wiang",
+      "name_en": "Phu Wiang District",
       "icon": "district-4.png"
     },
     {
       "id": "nam_phong",
       "name_th": "อำเภอน้ำพอง",
-      "name_en": "Nam Phong",
+      "name_en": "Nam Phong District",
       "icon": "district-5.png"
     },
     {
       "id": "si_chomphu",
       "name_th": "อำเภอสีชมพู",
-      "name_en": "Si Chomphu",
+      "name_en": "Si Chomphu District",
       "icon": "district-6.png"
+    },
+    {
+      "id": "suankwang",
+      "name_th": "อำเภอเขาสวนกวาง",
+      "name_en": "Khao Suan Kwang District",
+      "icon": "district-7.jpg"
+    },
+    {
+      "id": "ban_phai",
+      "name_th": "อำเภอบ้านไผ่",
+      "name_en": "Ban Phai District",
+      "icon": "district-8.jpg"
+    },
+    {
+      "id": "phon",
+      "name_th": "อำเภอพล",
+      "name_en": "Phon District",
+      "icon": "district-9.jpg"
     }
   ],
   "formats": [

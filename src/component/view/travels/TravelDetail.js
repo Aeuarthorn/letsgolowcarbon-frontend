@@ -22,6 +22,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ImageSlider from "../routes/ImageSlider";
+import { get_places_tourist_attraction_details } from "../../api/API";
 
 function TravelDetail() {
   // http://localhost:8080/get_places_tourist_attraction_details
@@ -52,7 +53,7 @@ function TravelDetail() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:8080/get_places_tourist_attraction_details", stateDetail, {
+      const res = await axios.post(get_places_tourist_attraction_details, stateDetail, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

@@ -27,6 +27,8 @@ const icon = [
 function MainRouteTraval() {
     const navigate = useNavigate();
 
+    
+
     const handleNavigate = (item, index) => {
         console.log("item", item);
 
@@ -63,64 +65,69 @@ function MainRouteTraval() {
                         justifyContent: 'center',
                     }}
                 >
-                    {icon.map((item, index) => (
-                        <Grid
-                            item
-                            key={index}
-                            sx={{
-                                minWidth: 300,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center', // ✅ จัดให้ทุกอย่างอยู่ตรงกลางแนวขวาง
-                                textAlign: 'center',  // ✅ จัดข้อความให้อยู่กลาง
-                            }}
-                        >
-                            <Box
-                                onClick={() => handleNavigate(item, index)}
-                                // component={Link}
-                                // to={`/place/${item.path}`} // ใช้ชื่อ label เป็น path เช่น /อาหาร
+                    {icon.map((item, index) => {
+                        console.log("item", item);
+
+                        return (
+                            <Grid
+                                item
+                                key={index}
                                 sx={{
-                                    textDecoration: 'none',
+                                    minWidth: 300,
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    alignItems: 'center',
-                                    textAlign: 'center',
-                                    p: 2,
-                                    borderRadius: 4,
-                                    color: "white",
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': {
-                                        backgroundColor: '#006400', // เขียวเข้ม
-                                        // backgroundColor: '#e0f7fa',
-                                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)',
-                                        transform: 'scale(1.05)',
-                                        color: "white",
-                                    },
+                                    alignItems: 'center', // ✅ จัดให้ทุกอย่างอยู่ตรงกลางแนวขวาง
+                                    textAlign: 'center',  // ✅ จัดข้อความให้อยู่กลาง
                                 }}
                             >
-                                <img
-                                    src={`/${item.icon}`}
-                                    style={{
-                                        width: '150px',
-                                        filter: 'brightness(0) invert(1)',
+                                <Box
+                                    onClick={() => handleNavigate(item, index)}
+                                    // component={Link}
+                                    // to={`/place/${item.path}`} // ใช้ชื่อ label เป็น path เช่น /อาหาร
+                                    sx={{
+                                        textDecoration: 'none',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        textAlign: 'center',
+                                        p: 2,
+                                        borderRadius: 4,
+                                        color: "white",
+                                        transition: 'all 0.3s ease',
                                         '&:hover': {
-                                            filter: 'brightness(0) saturate(100%) sepia(100%) hue-rotate(75deg) brightness(1.2)',
+                                            backgroundColor: '#006400', // เขียวเข้ม
+                                            // backgroundColor: '#e0f7fa',
+                                            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)',
+                                            transform: 'scale(1.05)',
+                                            color: "white",
                                         },
                                     }}
-                                />
-                                <Typography
-                                    variant="body1"
-                                    sx={{
-                                        fontWeight: 'bold',
-                                        fontSize: { xs: '0.8rem', sm: '1rem' },
-                                        mt: 1.5,
-                                    }}
                                 >
-                                    {item.label}
-                                </Typography>
-                            </Box>
-                        </Grid>
-                    ))}
+                                    <img
+                                        // src={`/${item.icon}`}
+                                        src={`/${item.icon}`}
+                                        style={{
+                                            width: '150px',
+                                            filter: 'brightness(0) invert(1)',
+                                            '&:hover': {
+                                                filter: 'brightness(0) saturate(100%) sepia(100%) hue-rotate(75deg) brightness(1.2)',
+                                            },
+                                        }}
+                                    />
+                                    <Typography
+                                        variant="body1"
+                                        sx={{
+                                            fontWeight: 'bold',
+                                            fontSize: { xs: '0.8rem', sm: '1rem' },
+                                            mt: 1.5,
+                                        }}
+                                    >
+                                        {item.label}
+                                    </Typography>
+                                </Box>
+                            </Grid>
+                        )
+                    })}
                 </Grid>
             </Box>
         </ThemeProvider>

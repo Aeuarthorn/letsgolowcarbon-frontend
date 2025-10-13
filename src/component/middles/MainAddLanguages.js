@@ -10,6 +10,7 @@ import {
     Alert,
 } from "@mui/material";
 import axios from "axios";
+import { create_language } from "../api/API";
 
 function MainAddLanguages() {
     const [language, setLanguage] = useState("");
@@ -50,7 +51,7 @@ function MainAddLanguages() {
             console.log("✅ ส่งภาษา:", payload);
 
             const response = await axios.post(
-                'http://localhost:8080/create_language',
+                create_language,
                 payload,
                 {
                     headers: {

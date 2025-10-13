@@ -22,6 +22,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import axios from "axios";
+import { create_travel_route, map_search, travel_admin } from "../api/API";
 
 const mapContainerStyle = { width: "100%", height: "500px" };
 const defaultCenter = { lat: 13.736717, lng: 100.523186 }; // กทม.
@@ -57,7 +58,7 @@ const MainAddRouteMap = () => {
 
   const loadTravelses = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/travel", {
+      const response = await axios.get(travel_admin, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -135,7 +136,7 @@ const MainAddRouteMap = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/map_search?lat=${lat}&lng=${lng}`,
+        `${map_search}?lat=${lat}&lng=${lng}`,
         {
           method: "GET", // กรณีนี้ใช้ GET
           headers: {
@@ -223,7 +224,7 @@ const MainAddRouteMap = () => {
       }));
 
       const response = await axios.post(
-        "http://localhost:8080/create_travel_route",
+        create_travel_route,
         enrichedPoints,
         {
           headers: {

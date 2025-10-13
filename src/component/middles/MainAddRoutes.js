@@ -21,6 +21,7 @@ import {
 import { UploadFile, Close } from "@mui/icons-material";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { create_travel, district_admin, district_get, languages, travel_admin, travel_types_admin, upload_image_all } from "../api/API";
 
 function MainAddRoutes() {
   const token = localStorage.getItem("token");
@@ -28,7 +29,7 @@ function MainAddRoutes() {
   const [district, setDistrict] = useState([]);
   const [language, setLanguage] = useState([]);
   const [travelType, setTravelType] = useState([]);
-  const [loading, setLoading] = useState(false);
+
   const [initialLoading, setInitialLoading] = useState(true);
   const [isDataReady, setIsDataReady] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -55,16 +56,16 @@ function MainAddRoutes() {
       setInitialLoading(true);
       try {
         const [resDistrict, , resLanguage, resTravelType] = await Promise.all([
-          axios.get("http://localhost:8080/district", {
+          axios.get(district_admin, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:8080/travel", {
+          axios.get(travel_admin, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:8080/language", {
+          axios.get(languages, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:8080/travel_types", {
+          axios.get(travel_types_admin, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -106,6 +107,8 @@ function MainAddRoutes() {
   };
 
   const handleImageUpload = (e, type) => {
+    console.log("e", e);
+
     const files = Array.from(e.target.files);
     if (files.length > 0) {
       const newImages = files.map((file) => ({
@@ -120,8 +123,16 @@ function MainAddRoutes() {
     }
   };
 
-  const handleRemoveImage = (indexToRemove) => {
-    const updatedImages = images.filter((_, index) => index !== indexToRemove);
+  const handleRemoveImage = (type, indexToRemove) => {
+    // ลบเฉพาะภาพในกลุ่ม type นั้น ๆ
+    const updatedImages = images?.filter((img, index) => {
+      if (img.type !== type) return true; // เก็บไว้ถ้าคนละ type
+      // ถ้า type เดียวกัน ให้ลบเฉพาะตัวที่ตรง index ของกลุ่มนั้น
+      const sameTypeImages = images?.filter((i) => i.type === type);
+      const targetImage = sameTypeImages[indexToRemove];
+      return img !== targetImage;
+    });
+
     setImages(updatedImages);
   };
 
@@ -155,46 +166,75 @@ function MainAddRoutes() {
       console.log("Payload:", payload);
 
       // ส่ง payload (comment ไว้เพราะยังไม่ใช้งาน)
-      const res = await axios.post("http://localhost:8080/create_travel", payload, {
+      const res = await axios.post(create_travel, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("res.data", res.data);
 
       if (res.status === 200 && res.data?.id) {
         // Upload image
+        // const newRouteId = 1;
+        setSnackbarMessage("✅ ข้อมูลถูกบันทึกเรียบร้อยแล้ว!");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true); // <<== ต้องมี!
+        setFormData({
+          name: "",
+          language: "",
+          brandImage: "",
+          infographicImage: "",
+          ttid: "",
+        });
         const newRouteId = res.data.id;
-        const formDataUpload = new FormData();
-        images.forEach((img) => {
-          formDataUpload.append("file", img.file);
-          formDataUpload.append("media_type", "image");
-          formDataUpload.append("type", img.type);
-          formDataUpload.append("place_type", "route");
-          formDataUpload.append("ref_id", newRouteId); // mock ID
-          formDataUpload.append("ref_name", "route");
-        });
+        const types = [...new Set(images.map((img) => img.type))];
 
-        const uploadRes = await axios.post("http://localhost:8080/upload_image_route", formDataUpload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // 🌀 วนแต่ละ type แล้วอัปโหลด
+        for (const type of types) {
+          // เลือกรูปเฉพาะกลุ่มนั้น
+          const imagesOfType = images.filter((img) => img.type === type);
+          if (imagesOfType.length === 0) continue;
 
-        if (uploadRes.status === 200) {
-          setSnackbarMessage("✅ ข้อมูลและรูปภาพถูกบันทึกเรียบร้อยแล้ว!");
-          setSnackbarSeverity("success");
-          setImages([]);
-          setSnackbarOpen(true); // <<== ต้องมี!
-          setFormData({
-            name: "",
-            language: "",
-            brandImage: "",
-            infographicImage: "",
-            ttid: "",
+          const formDataUpload = new FormData();
+
+          // เพิ่มไฟล์ทั้งหมดในกลุ่มนั้น
+          imagesOfType.forEach((img) => {
+            formDataUpload.append("files", img.file);
           });
 
-        } else {
-          setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
-          setSnackbarSeverity("error");
-          setSnackbarOpen(true); // <<== ต้องมี!
-          throw new Error("Upload failed");
+          // ค่าอื่น ๆ ใส่แค่ครั้งเดียว
+          formDataUpload.append("media_type", "image");
+          formDataUpload.append("type", type); // ✅ ใช้ type ที่กำลังอัปโหลด
+          formDataUpload.append("place_type", "route");
+          formDataUpload.append("ref_id", newRouteId);
+          formDataUpload.append("ref_name", "route");
+
+          console.log("Uploading images for type:", type, imagesOfType);
+
+          const uploadRes = await axios.post(upload_image_all, formDataUpload, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          });
+          console.log("uploadRes", uploadRes);
+          if (uploadRes.status === 200) {
+            setSnackbarMessage("✅ รูปภาพถูกบันทึกเรียบร้อยแล้ว!");
+            setSnackbarSeverity("success");
+            setImages([]);
+            setSnackbarOpen(true); // <<== ต้องมี!
+            setFormData({
+              name: "",
+              language: "",
+              brandImage: "",
+              infographicImage: "",
+              ttid: "",
+            });
+
+          } else {
+            setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
+            setSnackbarSeverity("error");
+            setSnackbarOpen(true); // <<== ต้องมี!
+            throw new Error("Upload failed");
+          }
         }
       } else {
         throw new Error("Place creation failed");
@@ -206,7 +246,6 @@ function MainAddRoutes() {
       setSnackbarOpen(true);
     }
   };
-
 
   return (
     <Box
@@ -292,7 +331,7 @@ function MainAddRoutes() {
                     {/* Banner Place (1 รูป) */}
                     <Grid item xs={12} sm={6}>
                       <Button variant="contained" component="label" color="success" fullWidth>
-                        เลือกรูปเส้นทาง
+                        เลือกรูปแบรนเนอร์เส้นทาง
                         <input
                           type="file"
                           accept="image/*"
@@ -301,22 +340,26 @@ function MainAddRoutes() {
                           onChange={(e) => handleImageUpload(e, "banner_route")}
                         />
                       </Button>
-
-
-                      {/* แสดง preview banner_route */}
-                      <Box sx={{ mt: 1 }}>
+                      <Box mt={2}>
                         {images
                           .filter((img) => img.type === "banner_route")
                           .map((img, index) => (
-                            <Box key={index} sx={{ mb: 1 }}>
+                            <Box key={index} sx={{ mt: 1 }}>
                               <img
                                 src={img.preview}
-                                alt={`banner_route preview ${index}`}
-                                style={{ maxWidth: "100%", maxHeight: 150 }}
+                                alt={`preview-${index}`}
+                                style={{ width: "100%", maxHeight: 150, objectFit: "cover", borderRadius: 8 }}
                               />
-                              <Typography variant="body2" sx={{ color: "#33691e" }}>
-                                {img.name}
-                              </Typography>
+                              <Box display="flex" justifyContent="space-between" alignItems="center">
+                                <Typography variant="body2">{img.name}</Typography>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleRemoveImage(img.type, index)} // ✅ ส่ง type ด้วย
+                                  sx={{ color: "red" }}
+                                >
+                                  <Close />
+                                </IconButton>
+                              </Box>
                             </Box>
                           ))}
                       </Box>
@@ -325,7 +368,7 @@ function MainAddRoutes() {
                     {/* อัปโหลดรูปภาพ (type = info_route) */}
                     <Grid item xs={12} sm={6}>
                       <Button variant="contained" component="label" color="success" fullWidth>
-                        เลือกรูปเส้นทาง
+                        เลือกรูปอินโฟกราฟฟิก
                         <input
                           type="file"
                           accept="image/*"
@@ -349,7 +392,7 @@ function MainAddRoutes() {
                                 <Typography variant="body2">{img.name}</Typography>
                                 <IconButton
                                   size="small"
-                                  onClick={() => handleRemoveImage(index)}
+                                  onClick={() => handleRemoveImage(img.type, index)} // ✅ ส่ง type ด้วย
                                   sx={{ color: "red" }}
                                 >
                                   <Close />

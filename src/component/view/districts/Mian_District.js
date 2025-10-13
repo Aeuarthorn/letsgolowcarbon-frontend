@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import MainVDO from '../../middles/MainVDO';
 import { useMemo } from 'react';
+import { get_show_image, travel_guest } from '../../api/API';
 
 
 function Mian_District({ screenWidth, defaultTheme, id, did, data }) {
@@ -14,26 +15,16 @@ function Mian_District({ screenWidth, defaultTheme, id, did, data }) {
     const [routes, setRoutes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const BASE_URL = "http://localhost:8080";
     const menuItems = useMemo(() => MainVDO(did), [did]);
-
-    console.log("id", id);
-    console.log("did", did);
-
-
-
-
 
     // หาข้อมูลตาม id
     const selectedDistrict = districts.find((item) => item.id === id);
     const language = i18n.language === 'th' ? selectedDistrict?.name_th : selectedDistrict?.name_en;
-    // console.log("id", id);
-    // console.log("selectedDistrict", selectedDistrict);
     const loadRoute = async () => {
         setLoading(true);
         setError(null); // ✅ Reset error state
         try {
-            const { data } = await axios.post(`${BASE_URL}/travel_guest`, { did });
+            const { data } = await axios.post(travel_guest, { did });
             console.log("✅ ดึงข้อมูลเส้นทางสำเร็จ:", data);
             setRoutes(data || []);
         } catch (error) {
@@ -239,70 +230,78 @@ function Mian_District({ screenWidth, defaultTheme, id, did, data }) {
                             spacing={{ xs: 2 }}
                             justifyContent="center"
                         >
-                            {routes?.map((route, index) => (
-                                <Grid
-                                    item
-                                    key={route.tid}
-                                    xs={12}
-                                    sm={6}
-                                    md={4}
-                                    sx={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'stretch', // ทำให้ card สูงเท่ากัน ถ้าใส่ content เพิ่มเติม
-                                    }}
-                                >
-                                    <Card
-                                        component={RouterLink}
-                                        // to={`/district/${id}/${route.tid}`}
-                                        to={`/district/${id}/${route.tid}?index=${index}`}
+                            {routes?.map((route, index) => {
+                                // console.log("route", route);
+
+                                return (
+                                    <Grid
+                                        item
+                                        key={route.tid}
+                                        xs={12}
+                                        sm={6}
+                                        md={4}
                                         sx={{
-                                            zIndex: 10,
-                                            borderRadius: 7,
-                                            // width: '100%',
-                                            // maxWidth: '250px',
-                                            // height: '100%', // ยืดความสูงเต็ม grid item ถ้าต้องการ
-                                            // maxHeight: '300px',
-                                            cursor: 'pointer',
-                                            overflow: 'hidden',
-                                            textDecoration: 'none',
                                             display: 'flex',
-                                            flexDirection: 'column', // ให้ CardMedia กับ Typography เรียงกัน
-                                            '&:hover': {
-                                                boxShadow: 6,
-                                                transform: 'scale(1.03)',
-                                            },
+                                            justifyContent: 'center',
+                                            alignItems: 'stretch', // ทำให้ card สูงเท่ากัน ถ้าใส่ content เพิ่มเติม
                                         }}
                                     >
-                                        <CardMedia
-                                            component="img"
-                                            src={`${BASE_URL}/${route.ImageRoute?.[0]?.path || '/placeholder.jpg'}`}
-                                            alt={route.name}
-                                            // loading="lazy"
+                                        <Card
+                                            component={RouterLink}
+                                            // to={`/district/${id}/${route.tid}`}
+                                            to={`/district/${id}/${route.tid}?index=${index}`}
                                             sx={{
-                                                // width: '300px',       // กว้างเต็มจอ
-                                                height: '300px',      // สูงเต็มจอ
-                                                objectFit: 'cover',
-                                                display: 'block',
-                                                // transition: 'opacity 0.3s ease-in-out', // จาง
-                                                backgroundColor: '#f0f0f0',
+                                                zIndex: 10,
+                                                borderRadius: 7,
+                                                cursor: 'pointer',
+                                                overflow: 'hidden',
+                                                textDecoration: 'none',
+                                                display: 'flex',
+                                                flexDirection: 'column', // ให้ CardMedia กับ Typography เรียงกัน
+                                                '&:hover': {
+                                                    boxShadow: 6,
+                                                    transform: 'scale(1.03)',
+                                                },
                                             }}
-                                        />
-                                        <CardActions sx={{ justifyContent: 'center' }}>
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: 'bold',
-                                                    fontSize: '1rem',
-                                                    color: 'black',
-                                                    textAlign: 'center',
-                                                }}
-                                            >
-                                                {route.name}
-                                            </Typography>
-                                        </CardActions>
-                                    </Card>
-                                </Grid>
-                            ))}
+                                        >
+                                            {route?.ImageRoute?.map((img, indexs) => {
+                                                // console.log("img", img);
+                                                return (
+                                                    <CardMedia
+                                                        component="img"
+                                                        src={`${get_show_image}/${img?.path}`}
+                                                        // src={`${BASE_URL}/${route.ImageRoute?.[0]?.path || '/placeholder.jpg'}`}
+                                                        alt={route.name}
+                                                        sx={{
+                                                            // width: '300px',       // กว้างเต็มจอ
+                                                            height: '300px',      // สูงเต็มจอ
+                                                            objectFit: 'cover',
+                                                            display: 'block',
+                                                            // transition: 'opacity 0.3s ease-in-out', // จาง
+                                                            backgroundColor: '#f0f0f0',
+                                                        }}
+                                                    />
+                                                )
+
+                                            })
+                                            }
+
+                                            <CardActions sx={{ justifyContent: 'center' }}>
+                                                <Typography
+                                                    sx={{
+                                                        fontWeight: 'bold',
+                                                        fontSize: '1rem',
+                                                        color: 'black',
+                                                        textAlign: 'center',
+                                                    }}
+                                                >
+                                                    {route.name}
+                                                </Typography>
+                                            </CardActions>
+                                        </Card>
+                                    </Grid>
+                                )
+                            })}
                         </Grid>
                     ) : (
                         <Box

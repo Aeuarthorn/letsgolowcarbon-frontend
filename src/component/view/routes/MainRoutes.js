@@ -39,6 +39,7 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import TravelPlanner from './TravelPlanner';
 import axios from 'axios';
 import { useCallback } from 'react';
+import { get_show_image, travel_route_details_guest, travel_route_guest, vehicle_with_routes_guest } from '../../api/API';
 
 const mapContainerStyle = { width: "100%", height: "500px" };
 const defaultCenter = { lat: 16.47, lng: 102.81 }; // ขอนแก่น
@@ -80,12 +81,10 @@ function MainRoutes() {
 
     const names = queryParams.get('name');
 
-    // console.log("names", names);
-    // console.log("idx:", idx);
-
     // // ส่วนอื่นๆ ที่คุณมี
     // console.log('images:', images);
     // console.log('slug:', slug);
+    // console.log('routeKey:', routeKey);
     // console.log('id:', id);
     // console.log('allRoutes:', allRoutes);
 
@@ -98,28 +97,6 @@ function MainRoutes() {
     const selectedRoute = Array.isArray(allRoutes)
         ? allRoutes.find((r) => String(r.id) === String(idx + 1)) || {}
         : {};
-
-
-    console.log("selectedRoute", selectedRoute);
-    // let selectedRoute = null;
-
-    // if (Array.isArray(allRoutes)) {
-    //     console.log("✅ allRoutes เป็น Array");
-    //     console.log("🔍 id จาก params:", id, typeof id);
-    //     console.log("🗂 ids ใน allRoutes:", allRoutes.map(r => r.id));
-
-    //     selectedRoute = allRoutes.find(r => String(r.id) === String(id));
-
-    //     if (!selectedRoute) {
-    //         console.warn(
-    //             `⚠️ หาไม่เจอ: id="${id}" ไม่ตรงกับ ids=[${allRoutes.map(r => r.id).join(", ")}]`
-    //         );
-    //     }
-    // } else {
-    //     console.error("❌ allRoutes ไม่ใช่ Array หรือยังไม่มีข้อมูล:", allRoutes);
-    // }
-
-    // console.log("selectedRoute", selectedRoute);
 
 
     function calculateCO2E(vechicleType, fuelType, distance) {
@@ -164,14 +141,14 @@ function MainRoutes() {
     useEffect(() => {
         setIsLoading(true);
         Promise.all([
-            axios.post("http://localhost:8080/vehicle_with_routes_guest", { tid: parseInt(id) }),
-            axios.post("http://localhost:8080/travel_route_guest", { tid: parseInt(id) }),
-            axios.post("http://localhost:8080/travel_route_details_guest", { tid: parseInt(id) }),
+            axios.post(vehicle_with_routes_guest, { tid: parseInt(id) }),
+            axios.post(travel_route_guest, { tid: parseInt(id) }),
+            axios.post(travel_route_details_guest, { tid: parseInt(id) }),
         ])
             .then(([vehicleRes, routeRes, routeDetails]) => {
-                console.log("routeDetails?.data ", routeDetails?.data);
-                console.log("vehicleRes?.data ", vehicleRes?.data);
-                console.log("routeRes.data ", routeRes.data);
+                // console.log("routeDetails?.data ", routeDetails?.data);
+                // console.log("vehicleRes?.data ", vehicleRes?.data);
+                // console.log("routeRes.data ", routeRes.data);
                 setVihicleWithRoute(vehicleRes?.data || []);
                 // setImages(routeDetails?.data[0]?.ImageRoute || []);
                 const allImages = routeDetails?.data
@@ -230,39 +207,6 @@ function MainRoutes() {
 
     }, [selectedVehicle, vihicleWithRoute]);
 
-    // const loadVihicleWithRoute = useCallback(async () => {
-    //     setIsLoading(true);
-    //     try {
-    //         const response = await axios.post("http://localhost:8080/vehicle_with_routes_guest", {
-    //             tid: parseInt(id)
-    //         });
-
-    //         console.log("✅ ดึงข้อมูลสำเร็จ:", response.data);
-    //         setVihicleWithRoute(response.data || []);
-    //     } catch (error) {
-    //         console.error("❌ ดึงข้อมูลล้มเหลว:", error);
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // }, [id, token]);
-
-    // const loadTravelRoute = useCallback(async () => {
-    //     setIsLoading(true);
-    //     try {
-    //         const response = await axios.post("http://localhost:8080/travel_route_guest", {
-    //             tid: parseInt(id)
-    //         });
-
-    //         console.log("✅ ดึงข้อมูล Map สำเร็จ:", response.data);
-    //         setPoints(response.data || []);
-    //     } catch (error) {
-    //         console.error("❌ ดึงข้อมูลล้มเหลว:", error);
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // }, [id, token]);
-
-
 
     const handleVehicleChange = (event, newVehicle) => {
         console.log("newVehicle", newVehicle);
@@ -319,15 +263,6 @@ function MainRoutes() {
             }
         );
     };
-
-
-    // if (!selectedRoute) {
-    //     return (
-    //         <Container maxWidth="sm" sx={{ pt: 4 }}>
-    //             <Typography variant="h6" color="error">ไม่พบข้อมูลเส้นทางที่คุณเลือก</Typography>
-    //         </Container>
-    //     );
-    // }
 
     return (
         <Container maxWidth={false} sx={{ pt: 4 }}>
@@ -547,22 +482,19 @@ function MainRoutes() {
                     {images?.length > 0 ?
                         <CardMedia
                             component="img"
-                            src={`${BASE_URL}/${images[0]?.path || '/placeholder.jpg'}`}
+                            src={`${get_show_image}/${images[0]?.path}`}
                             alt={images[0]?.filename}
-                            // loading="lazy"
                             sx={{
                                 width: '100%',
                                 // height: 220,
                                 objectFit: 'cover',
                                 display: 'block',
                                 borderRadius: 12,
-                                // transition: 'opacity 0.3s ease-in-out', // จาง
                                 backgroundColor: '#f0f0f0',
                             }}
                         />
                         : (
                             <Box display="flex" justifyContent="center" alignItems="center" height={500}>
-                                {/* <CircularProgress /> */}
                                 ยังไม่มีข้อมูลในฐานข้อมูล
                             </Box>
                         )}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Grid, Card, CardMedia, Button, Box, IconButton } from "@mui/material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { get_show_image } from "../../api/API";
 
 const ImageSlider = ({ images, BASE_URL }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -22,7 +23,8 @@ const ImageSlider = ({ images, BASE_URL }) => {
                 <CardMedia
                     component="img"
                     // height="300"
-                    image={`${BASE_URL}/${images[currentIndex].path}`}
+                    // image={`${BASE_URL}/${images[currentIndex].path}`}
+                    image={`${get_show_image}/${images[currentIndex].path}`}
                     alt={`ภาพที่ ${currentIndex + 1}`}
                 />
 
@@ -61,25 +63,6 @@ const ImageSlider = ({ images, BASE_URL }) => {
                 </IconButton>
             </Card>
         </Grid>
-        // <Grid item xs={12} md={6}>
-        //     <Card sx={{ mb: 2 }}>
-        //         <CardMedia
-        //             component="img"
-        //             height="300"
-        //             image={`${BASE_URL}/${images[currentIndex].path}`}
-        //             alt={`ภาพที่ ${currentIndex + 1}`}
-        //         />
-        //     </Card>
-
-        //     <Box display="flex" justifyContent="space-between" mt={1}>
-        //         <Button variant="contained" onClick={handlePrev}>
-        //             ก่อนหน้า
-        //         </Button>
-        //         <Button variant="contained" onClick={handleNext}>
-        //             ถัดไป
-        //         </Button>
-        //     </Box>
-        // </Grid>
     );
 };
 

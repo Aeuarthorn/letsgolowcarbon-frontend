@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { create_travel_timeline, travel_admin } from "../api/API";
 
 function MainAddRouteDetails() {
   const [route, setRoute] = useState("");
@@ -35,7 +36,7 @@ function MainAddRouteDetails() {
 
   const loadTravelses = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/travel", {
+      const response = await axios.get(travel_admin, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -106,7 +107,7 @@ function MainAddRouteDetails() {
       console.log(" Payload พร้อมส่ง:", payload);
 
       const response = await axios.post(
-        "http://localhost:8080/create_travel_timeline",
+        create_travel_timeline,
         payload,
         {
           headers: {

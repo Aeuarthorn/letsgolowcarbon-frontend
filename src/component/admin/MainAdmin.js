@@ -14,6 +14,10 @@ import FuelTable from "../middles/FuelTable";
 import MainAddRouteFrom from "../middles/MainAddRouteFrom";
 import MainAddVehicles from "../middles/MainAddVehicles";
 import MainAddVideoDistrict from "../middles/MainAddVideoDistrict";
+import MainEditImagesAndVDO from "../editpages/MainEditImagesAndVDO";
+import MainEditImageInfographic from "../editpages/MainEditImageInfographic";
+import MainEditimageBanner from "../editpages/MainEditimageBanner";
+import MainEditImageDetailsPlace from "../editpages/MainEditImageDetailsPlace";
 
 
 const drawerWidth = 260;
@@ -57,6 +61,18 @@ function MainAdmin({ screenWidth, defaultTheme }) {
       case "addRouteDistrictVideo":
         navigate("/admin/add/districtvideo");
         break;
+      case "editimagesandvdo":
+        navigate("/admin/edit/editimagesandvdo");
+        break;
+      case "editimagebranner":
+        navigate("/admin/edit/editimagebranner");
+        break;
+      case "editimageinfographic":
+        navigate("/admin/edit/editimageinfographic");
+        break;
+      case "editimagedetailplace":
+        navigate("/admin/edit/editimagedetailplace");
+        break;
       case "addLanguage":
         navigate("/admin/add/addLanguage");
         break;
@@ -89,6 +105,11 @@ function MainAdmin({ screenWidth, defaultTheme }) {
           <Route path="/add/districtvideo" element={<MainAddVideoDistrict />} />
           <Route path="/add/addLanguage" element={<MainAddLanguages />} />
           <Route path="/add/addFuel" element={<FuelTable />} />
+          {/* edit */}
+          <Route path="/edit/editimagesandvdo" element={<MainEditImagesAndVDO />} />
+          <Route path="/edit/editimagebranner" element={<MainEditimageBanner />} />
+          <Route path="/edit/editimageinfographic" element={<MainEditImageInfographic />} />
+          <Route path="/edit/editimagedetailplace" element={<MainEditImageDetailsPlace />} />
           {/* <Route path="/add/addvehicleEfficiency" element={<MainAddVehicles />} /> */}
           <Route path="/add/addtravelDataWithVehicles" element={<MainAddRouteFrom />} />
           <Route path="/" element={<AdminDashboard />} /> {/* 👈 default dashboard */}

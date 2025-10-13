@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import logo from "./component/logo/icon_new.png";
+import { reset_password } from "./component/api/API";
 
 function ResetPasswordPage() {
     const { t } = useTranslation();
@@ -17,7 +18,7 @@ function ResetPasswordPage() {
 
     const handleReset = async () => {
         try {
-            const res = await axios.post("http://localhost:8080/reset-password", { email });
+            const res = await axios.post(reset_password, { email });
             if (res.status === 200) {
                 setSnackbar({ open: true, message: t("ส่งลิงก์รีเซ็ตรหัสผ่านแล้ว"), severity: "success" });
             } else {

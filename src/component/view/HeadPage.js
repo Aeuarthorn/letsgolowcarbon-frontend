@@ -40,6 +40,7 @@ import { useNavigate } from "react-router-dom";
 import resources from "../../i18n"; // Assuming your i18n.js file is in the parent directory
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
+import { travel_types_guest } from "../api/API";
 const AppBar = styled(MuiAppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
 }));
@@ -62,7 +63,6 @@ export default function HeadPage({ screenWidth, defaultTheme, isAuthenticated, }
   const [loading, setLoading] = useState(true);
   const [travelType, setTravelType] = useState([]);
   const [error, setError] = useState(null);
-  const BASE_URL = "http://localhost:8080";
   const token = localStorage.getItem("token")
   const [languageData, setLanguageData] = useState(
     i18n.language === "th"
@@ -84,7 +84,7 @@ export default function HeadPage({ screenWidth, defaultTheme, isAuthenticated, }
     setLoading(true);
     setError(null); // ✅ Reset error state
     try {
-      const travelTypes = await axios.get(`${BASE_URL}/travel_types_guest`);
+      const travelTypes = await axios.get(travel_types_guest);
       console.log("✅ ดึงข้อมูลเส้นทางสำเร็จ:++++++++++", travelTypes.data);
       setTravelType(travelTypes?.data || []);
     } catch (error) {

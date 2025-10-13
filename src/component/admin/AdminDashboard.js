@@ -14,6 +14,7 @@ import LocationCityIcon from "@mui/icons-material/LocationCity";
 
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { get_dashboard_admin } from "../api/API";
 
 const CardItem = ({ item }) => (
     <Paper
@@ -52,7 +53,7 @@ function AdminDashboard() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await axios.get("http://localhost:8080/get_dashboard", {
+                const res = await axios.get(get_dashboard_admin, {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,

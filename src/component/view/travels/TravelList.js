@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { get_places_tourist_attraction } from "../../api/API";
 
 function TravelList() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ function TravelList() {
   const LoadDataPlace = async () => {
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:8080/get_places_tourist_attraction", stateList, {
+      const res = await axios.post(get_places_tourist_attraction, stateList, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import Mian_District from './districts/Mian_District';
 import axios from 'axios';
 import { Box } from '@mui/material';
+import { district_guest } from '../api/API';
 
 function DistrictPage({ screenWidth, defaultTheme }) {
     const { id } = useParams();
@@ -19,6 +20,9 @@ function DistrictPage({ screenWidth, defaultTheme }) {
         'phu_wiang': 4,
         'nam_phong': 5,
         'si_chomphu': 6,
+        'suankwang': 7,
+        'ban_phai': 8,
+        'phon': 9,
     };
 
     useEffect(() => {
@@ -27,7 +31,7 @@ function DistrictPage({ screenWidth, defaultTheme }) {
                 setLoading(true);
                 setError(null);
                 // 🔧 ตัวอย่าง API — เปลี่ยนให้ตรงกับของคุณ
-                const resDistrict = await axios.get("http://localhost:8080/district_guest", {
+                const resDistrict = await axios.get(district_guest, {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
@@ -43,15 +47,6 @@ function DistrictPage({ screenWidth, defaultTheme }) {
         };
         fetchDistrictData();
     }, []);
-
-    // if (loading) {
-    //     return <div style={{ padding: '2rem' }}>กำลังโหลดข้อมูล...</div>;
-    // }
-
-    // if (error) {
-    //     return <div style={{ color: 'red', padding: '2rem' }}>{error}</div>;
-    // }
-
 
     return (
         <Mian_District

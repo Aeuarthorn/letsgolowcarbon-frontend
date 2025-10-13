@@ -20,6 +20,7 @@ import {
 import { CloudUpload, PlayCircleOutline } from '@mui/icons-material';
 import { useEffect } from 'react';
 import axios from 'axios';
+import { district_admin, upload_image_all } from '../api/API';
 
 
 function MainAddVideoDistrict() {
@@ -49,7 +50,7 @@ function MainAddVideoDistrict() {
             setInitialLoading(true);
             setLoading(true);
             try {
-                const resDistrict = await axios.get("http://localhost:8080/district", {
+                const resDistrict = await axios.get(district_admin, {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
@@ -121,52 +122,119 @@ function MainAddVideoDistrict() {
         }
         console.log("videoFile", videoFile);
         console.log("form.did", form.did);
-        setLoading(true);
+        // setLoading(true);
 
-        try {
-            const formData = new FormData();
-            formData.append("video", videoFile); // ไฟล์ .mp4
-            formData.append("media_type", "video");
-            formData.append("place_type", "district");
-            formData.append("ref_id", form.did); // เช่น 103
-            formData.append("ref_name", "district");
-            for (let [key, value] of formData.entries()) {
-                console.log(key, value);
-            }
-            const uploadVDO = await axios.post("http://localhost:8080/uploads_video", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    "Authorization": `Bearer ${token}`,
-                },
-            });
-            // const uploadVDO = await axios.post("http://localhost:8080/uploads_video", formData, {
-            //     headers: {
-            //         Authorization: `Bearer ${token}`,
-            //     },
-            // });
-            console.log("uploadVDO", uploadVDO);
-            if (uploadVDO.status === 200) {
-                setSnackbarMessage("อัปโหลดวิดีโอสำเร็จ");
-                setSnackbarSeverity("success");
-                setSnackbarOpen(true);
+        // try {
 
-                // Reset state
-                setVideoFile('');
-                setVideoURL('');
-                setForm({ ...form, did: 0 });
-            } else {
-                setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
-                setSnackbarSeverity("error");
-                throw new Error("Upload failed");
-            }
-        } catch (error) {
-            console.error("Upload error:", error);
-            setSnackbarMessage("เกิดข้อผิดพลาดในการอัปโหลด");
-            setSnackbarSeverity("error");
-            setSnackbarOpen(true);
-        } finally {
-            setLoading(false);
+        const newDistrctId = 6;
+        const formData = new FormData();
+        let primaryMediaType = '';
+
+        // 🚨 ขั้นตอนที่ 1: ตรวจสอบและรวบรวมไฟล์จริง (แก้ปัญหาการเข้าถึง/การวนซ้ำ)
+        let filesToUpload = [];
+
+        // 💡 Case 1: videoFile เป็น File Object โดยตรง (เช่น จาก input.files[0])
+        if (videoFile instanceof File) {
+            filesToUpload = [videoFile];
         }
+        // 💡 Case 2: videoFile เป็น Array ที่มี File Objects อยู่ข้างใน (กรณี Multi-file)
+        else if (Array.isArray(videoFile)) {
+            videoFile.forEach(item => {
+                // รองรับทั้ง item ที่เป็น File หรือ item ที่มี property .file
+                const file = (item instanceof File) ? item : (item && item.file instanceof File) ? item.file : null;
+                if (file) {
+                    filesToUpload.push(file);
+                }
+            });
+        }
+
+        // ----------------------------------------------------
+        // 2. วนลูปเพื่อสร้าง FormData ด้วยไฟล์ที่รวบรวมได้
+        // ----------------------------------------------------
+
+        if (filesToUpload.length === 0) {
+            setErrorSnackbar({ open: true, message: "ไม่พบไฟล์วิดีโอ/รูปภาพที่รองรับสำหรับการอัปโหลด" });
+            return;
+        }
+
+        filesToUpload.forEach((file) => {
+            const fileName = file.name;
+            const extension = fileName.split('.').pop().toLowerCase();
+            const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension);
+            const isVideo = ['mp4', 'mov', 'avi', 'mkv'].includes(extension);
+
+            if (isImage || isVideo) {
+                // 🎯 APPEND ไฟล์ภายใต้ Key 'files' เพื่อให้ Backend รับได้
+                formData.append("files", file);
+
+                if (primaryMediaType === '') {
+                    primaryMediaType = isImage ? 'image' : 'vdo';
+                }
+            }
+        });
+
+        // ----------------------------------------------------
+        // 3. กำหนดค่าพารามิเตอร์ Text คงที่ (นอก Loop)
+        // ----------------------------------------------------
+
+        if (formData.getAll("files").length === 0 || primaryMediaType === '') {
+            setErrorSnackbar({ open: true, message: "ไม่พบไฟล์ที่ถูกต้องหลังจากตรวจสอบประเภทสื่อ" });
+            return;
+        }
+
+        formData.append("media_type", primaryMediaType);
+        formData.append("place_type", "route_vdo");
+        formData.append("ref_id", newDistrctId);
+
+        // Debugging Final FormData (ตรวจสอบว่ามี key:files และ key:media_type)
+        console.log("--- Final FormData Contents ---");
+        for (let [key, value] of formData.entries()) {
+            // ถ้าเป็นไฟล์ จะแสดง [object File], ถ้าเป็น text จะแสดงค่า
+            console.log(`Key: ${key}`, value);
+        }
+        console.log("-------------------------------");
+
+        // ----------------------------------------------------
+        // 4. เรียก API
+        // ----------------------------------------------------
+        const uploadRes = await axios.post(upload_image_all, formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        console.log("uploadRes", uploadRes);
+
+        // if (uploadRes.status === 201 || uploadRes.status === 207) {
+        //     const folderID = uploadRes.data.folderID; // 💡 ดึง Folder ID กลับมาเก็บไว้
+        //     // ... (โค้ด Success Snackbar และ Reset state) ...
+        // } else {
+        //     // ... (โค้ดแสดง Error Snackbar) ...
+        // }
+
+
+
+        //     if (uploadVDO.status === 200) {
+        //         setSnackbarMessage("อัปโหลดวิดีโอสำเร็จ");
+        //         setSnackbarSeverity("success");
+        //         setSnackbarOpen(true);
+
+        //         // Reset state
+        //         setVideoFile('');
+        //         setVideoURL('');
+        //         setForm({ ...form, did: 0 });
+        //     } else {
+        //         setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
+        //         setSnackbarSeverity("error");
+        //         throw new Error("Upload failed");
+        //     }
+        // } catch (error) {
+        //     console.error("Upload error:", error);
+        //     setSnackbarMessage("เกิดข้อผิดพลาดในการอัปโหลด");
+        //     setSnackbarSeverity("error");
+        //     setSnackbarOpen(true);
+        // } finally {
+        //     setLoading(false);
+        // }
     };
 
     return (

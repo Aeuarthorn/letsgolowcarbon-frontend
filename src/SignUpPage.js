@@ -203,6 +203,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import logo from "./component/logo/icon_new.png";
 import { useNavigate } from "react-router-dom";
+import { register } from "./component/api/API";
 
 function SignUpPage() {
   const { t } = useTranslation();
@@ -258,7 +259,7 @@ function SignUpPage() {
       console.log(JSON.stringify(payload, null, 2));
 
 
-      const res = await axios.post("http://localhost:8080/register", payload
+      const res = await axios.post(register, payload
         // { headers: { "Content-Type": "application/json" } }
       );
 
@@ -279,7 +280,7 @@ function SignUpPage() {
       setLoading(false);
     }
   };
-  
+
   const onPasswordChange = (e) => {
     setPassword(e.target.value);
     if (e.target.value.length >= 6) {
@@ -407,8 +408,17 @@ function SignUpPage() {
         </Box>
       </Box>
 
-      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity={snackbar.severity} sx={{ width: "100%" }}>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleClose}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

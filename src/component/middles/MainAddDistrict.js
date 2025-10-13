@@ -3,6 +3,7 @@ import { TextField, Button, Container, Typography, Box, Paper, Backdrop, Circula
 import axios from 'axios';
 import { CheckCircleOutline } from '@mui/icons-material';
 import CheckIcon from '@mui/icons-material/Check';
+import { create_district_admin, upload_image_all } from '../api/API';
 
 function MainAddDistrict() {
     const [districts, setDistricts] = useState('');
@@ -14,13 +15,15 @@ function MainAddDistrict() {
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // "success" | "error" | "warning" | "info"
 
+    console.log("images", images);
+
     // ฟังก์ชันสำหรับบันทึกข้อมูลอำเภอ
     const handleSave = async () => {
         console.log('ข้อมูลอำเภอที่บันทึก:', districts);
         setLoading(true);
         try {
             const response = await axios.post(
-                'http://localhost:8080/create_district', { name: districts, },
+                create_district_admin, { name: districts, },
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -31,7 +34,7 @@ function MainAddDistrict() {
 
             if (response.status === 200) {
                 // NEW
-                // const newDistrctId = 6;
+                // const newDistrctId = 7;
                 const newDistrctId = response.data.id;
                 const formData = new FormData();
                 // STEP 2: เตรียมอัปโหลดภาพ (image & video)
@@ -42,16 +45,20 @@ function MainAddDistrict() {
                         if (img.file instanceof File) {
                             const file = img.file;
                             const fileName = file.name;
+                            console.log("file", file);
+                            console.log("fileName", fileName);
+
                             const extension = fileName.split('.').pop().toLowerCase();
 
                             const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension);
                             const isVideo = ['mp4', 'mov', 'avi', 'mkv'].includes(extension);
-                            const mediaType = isImage ? 'image' : isVideo ? 'video' : 'unknown';
+                            const mediaType = isImage ? 'image' : isVideo ? 'vdo' : 'unknown';
 
                             if (mediaType === 'unknown') return;
 
                             console.log("mediaType", mediaType);
                             console.log("img.type", img.type);
+                            console.log("newDistrctId", newDistrctId);
 
 
                             formData.append("file", file);
@@ -59,22 +66,25 @@ function MainAddDistrict() {
                             formData.append("type", img.type || 'default');
                             formData.append("place_type", "district");
                             formData.append("ref_id", newDistrctId);         // <-- ID จากการสร้าง place
-                            formData.append("ref_name", 'dsitrict');
+                            formData.append("ref_name", 'district');
+
+                            for (let [key, value] of formData.entries()) {
+                                console.log(key, value);
+                            }
                         }
                     });
                 }
 
                 console.log("formData", formData);
-                const uploadRes = await axios.post("http://localhost:8080/upload_image_banner", formData, {
+                const uploadRes = await axios.post(upload_image_all, formData, {
+                    // const uploadRes = await axios.post("http://localhost:8080/upload_image_banner", formData, {
                     headers: {
                         Authorization: `Bearer ${token}`, // ❌ อย่าตั้ง Content-Type เอง
                     },
                 });
-
                 console.log("uploadRes", uploadRes);
 
-
-                if (uploadRes.status === 200) {
+                if (uploadRes.status === 200 || uploadRes.status === 201) {
                     setSnackbarMessage("✅ ข้อมูลและรูปภาพถูกบันทึกเรียบร้อยแล้ว!");
                     setSnackbarSeverity("success");
                     setSnackbarOpen(true); // ← ตรงนี้แสดง snackbar

@@ -28,6 +28,9 @@ import PlacesDetails from "./component/view/places/PlacesDetails";
 import MainTravelTypes from "./component/view/traveltypes/MainTravelTypes";
 import ResetPasswordPage from "./ResetPasswordPage";
 import MainGroupTourPage from "./component/view/grouptour/MainGroupTourPage";
+import MainCreateTripPage from "./component/view/grouptour/MainJoinTripPage";
+import MainJoinTripPage from "./component/view/grouptour/MainJoinTripPage";
+import MainJoinTripPageDetail from "./component/view/grouptour/MainJoinTripPageDetail";
 
 const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -202,6 +205,61 @@ export default function App() {
             }
           />
           <Route
+            path="/tour/*"
+            element={
+              <ProtectedRoute
+                element={
+                  <Routes>
+                    {/* หน้าหลักทัวร์ */}
+                    <Route
+                      path=""
+                      element={
+                        <MainGroupTourPage
+                          screenWidth={screenWidth}
+                          defaultTheme={defaultTheme}
+                        />
+                      }
+                    />
+                    {/* หน้าสร้างทริป */}
+                    <Route
+                      path="join-trip"
+                      element={
+                        <ProtectedRoute
+                          element={
+                            <MainJoinTripPage
+                              screenWidth={screenWidth}
+                              defaultTheme={defaultTheme}
+                            />
+                          }
+                          allowedRoles={["admin", "user", "guest"]}
+                          userRole={role}
+                        />
+                      }
+                    />
+                    {/* หน้ารายละเอียดการเข้าร่วมทริป */}
+                    <Route
+                      path="join-trip/detail"
+                      element={
+                        <ProtectedRoute
+                          element={
+                            <MainJoinTripPageDetail
+                              screenWidth={screenWidth}
+                              defaultTheme={defaultTheme}
+                            />
+                          }
+                          allowedRoles={["admin", "user", "guest"]}
+                          userRole={role}
+                        />
+                      }
+                    />
+                  </Routes>
+                }
+                allowedRoles={["admin", "user", "guest"]}
+                userRole={role}
+              />
+            }
+          />
+          {/* <Route
             path="/tour"
             element={
               <ProtectedRoute
@@ -215,7 +273,7 @@ export default function App() {
                 userRole={role}
               />
             }
-          />
+          /> */}
           <Route
             path="/about"
             element={

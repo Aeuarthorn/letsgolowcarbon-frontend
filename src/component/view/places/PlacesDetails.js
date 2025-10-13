@@ -29,6 +29,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ImageSlider from "../routes/ImageSlider";
+import { get_places_tourist_attraction_details_guest } from "../../api/API";
 
 
 function PlacesDetails() {
@@ -62,11 +63,14 @@ function PlacesDetails() {
         }
     }, []);
 
+    console.log("placesDataDetail", placesDataDetail);
+
+
     const LoadDataPlaceDetail = async () => {
         setLoading(true);
 
         try {
-            const res = await axios.post("http://localhost:8080/get_places_tourist_attraction_details", stateDetail, {
+            const res = await axios.post(get_places_tourist_attraction_details_guest, stateDetail, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
@@ -136,7 +140,10 @@ function PlacesDetails() {
         <Box p={3}>
             <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                    <ImageSlider images={placesDataDetail.images} BASE_URL={BASE_URL} />
+                    <ImageSlider
+                        images={placesDataDetail.images}
+                        BASE_URL={BASE_URL}
+                    />
                     {/* google map */}
                     <Grid item xs={12}>
                         <Box

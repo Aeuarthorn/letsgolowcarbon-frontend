@@ -11,6 +11,7 @@ import {
   Grid,
 } from "@mui/material";
 import axios from "axios";
+import { create_travel_types_admin } from "../api/API";
 
 function MaiAddFormOfTravel() {
   const [name, setName] = useState("");
@@ -42,7 +43,7 @@ function MaiAddFormOfTravel() {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/create_travel_types",
+        create_travel_types_admin,
         { name }, // ← send { name: "..." }
         {
           headers: {

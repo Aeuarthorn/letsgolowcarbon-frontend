@@ -19,6 +19,7 @@ import {
 import { Add, Delete } from '@mui/icons-material';
 import axios from 'axios';
 import { useEffect } from 'react';
+import { create_route_vehicles, travel_admin, travel_route, vehicle_with_fuels } from '../api/API';
 
 // const vehicleOptions = [
 //     {
@@ -93,7 +94,7 @@ function MainAddRouteFrom() { // เพิ่มข้อมูลการเ�
     const loadTravelses = async () => {
         setIsLoading(true)
         try {
-            const resTravel = await axios.get("http://localhost:8080/travel", {
+            const resTravel = await axios.get(travel_admin, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
@@ -113,7 +114,7 @@ function MainAddRouteFrom() { // เพิ่มข้อมูลการเ�
     const loadVehicleOptions = async () => {
         setIsLoading(true)
         try {
-            const resTravel = await axios.get("http://localhost:8080/vehicle_with_fuels", {
+            const resTravel = await axios.get(vehicle_with_fuels, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
@@ -130,7 +131,7 @@ function MainAddRouteFrom() { // เพิ่มข้อมูลการเ�
     };
 
     const LoadTravelRoute = async (tid) => {
-        const resTravelRoute = await axios.post("http://localhost:8080/travel_route", { tid: tid }, {
+        const resTravelRoute = await axios.post(travel_route, { tid: tid }, {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
@@ -184,7 +185,7 @@ function MainAddRouteFrom() { // เพิ่มข้อมูลการเ�
         }
 
         try {
-            const res = await axios.post('http://localhost:8080/create_route_vehicles', formData,
+            const res = await axios.post(create_route_vehicles, formData,
                 {
                     headers: {
                         "Content-Type": "application/json",

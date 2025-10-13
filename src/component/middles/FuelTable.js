@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import axios from 'axios';
+import { create_fuels, delete_fuels, edit_fuels, fuelsed } from "../api/API";
 
 function FuelTable() {
     const [fuels, setFuels] = useState([]);
@@ -31,7 +32,7 @@ function FuelTable() {
     const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // หรือ "error"
 
     const fetchFuels = async () => {
-        const res = await axios.get('http://localhost:8080/fuels',
+        const res = await axios.get(fuelsed,
             {
                 headers: {
                     "Content-Type": "application/json",
@@ -70,7 +71,7 @@ function FuelTable() {
         setLoading(true);
         try {
             if (editFuel) {
-                await axios.put(`http://localhost:8080/edit_fuels/${editFuel.ID}`, formData, {
+                await axios.put(`${edit_fuels}/${editFuel.ID}`, formData, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
@@ -78,7 +79,7 @@ function FuelTable() {
                 });
                 setSnackbarMessage("✅ แก้ไขข้อมูลสำเร็จ");
             } else {
-                await axios.post("http://localhost:8080/create_fuels", formData, {
+                await axios.post(create_fuels, formData, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
@@ -103,7 +104,7 @@ function FuelTable() {
 
     const handleDelete = async (id) => {
         if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?')) {
-            await axios.delete(`http://localhost:8080/delete_fuels/${id}`, {
+            await axios.delete(`${delete_fuels}/${id}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`

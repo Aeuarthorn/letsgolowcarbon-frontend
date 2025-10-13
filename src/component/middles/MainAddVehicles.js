@@ -16,6 +16,7 @@ import {
     Card
 } from '@mui/material';
 import axios from 'axios';
+import { fuelsed } from '../api/API';
 
 const FUEL_OPTIONS = [
     'แก๊สโซฮอล์ 91',
@@ -37,7 +38,7 @@ function MainAddVehicles() {
 
 
     const fetchFuels = async () => {
-        const res = await axios.get('http://localhost:8080/fuels',
+        const res = await axios.get(fuelsed,
             {
                 headers: {
                     "Content-Type": "application/json",
