@@ -127,9 +127,13 @@ function MainEditimageBanner() {
         }
 
         try {
+            setUploading(true);
+            setProgress(0);
+
             const newRouteId = idTravelRouteImg;
             const types = [...new Set(images.map((img) => img.type))];
             const uploadedPaths = [];
+
             // 🌀 วนแต่ละ type แล้วอัปโหลด
             for (const type of types) {
                 const imagesOfType = images.filter((img) => img.type === type);
@@ -152,36 +156,43 @@ function MainEditimageBanner() {
                         "Content-Type": "multipart/form-data",
                     },
                 });
-                console.log("uploadRes", uploadRes);
-                // ✅ ดึง path ออกจาก response ที่ถูกต้อง
-                const results = uploadRes.data?.data?.results || [];
-                const paths = results.map((r) => r.file_path).filter(Boolean);
 
-                // ✅ ตรวจว่ามี path ไหม
+                console.log("📦 uploadRes.data:", uploadRes.data);
+
+                // ✅ ดึง path จาก response ที่แน่นอน
+                const results = uploadRes.data?.data?.results || [];
+                const paths = results.map((r) => r.file_path);
+                console.log("paths++++", paths);
+
                 if (paths.length > 0) {
                     uploadedPaths.push(...paths);
                 } else {
-                    throw new Error(`การอัปโหลด ${type} สำเร็จแต่ไม่ได้รับ path กลับมา`);
+                    // ❗ไม่โยน Error แล้ว แต่จะแจ้งเตือนเฉย ๆ เพื่อไม่ให้เข้า catch
+                    console.warn(`⚠️ การอัปโหลด ${type} สำเร็จแต่ไม่ได้รับ path กลับมา`);
                 }
-            } // End of upload loop
+            }
+            console.log("uploadedPaths0]", uploadedPaths);
 
-            const finalPath = uploadedPaths.length > 0 ? uploadedPaths[uploadedPaths.length - 1] : "";
-
-            if (!finalPath && images.length > 0) {
-                setSnackbarMessage("❌ การอัปโหลดรูปภาพล้มเหลวทั้งหมด");
-                return; // Exit and keep loading state true until finally block
+            // ✅ ตรวจว่ามีไฟล์อัปโหลดสำเร็จไหม
+            if (uploadedPaths.length === 0) {
+                setSnackbarMessage("❌ ไม่มีไฟล์ใดถูกอัปโหลดสำเร็จ");
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true);
+                return;
             }
 
+            // ✅ เอา path ล่าสุดไปอัปเดต banner
+            const finalPath = uploadedPaths[uploadedPaths.length - 1];
             const index = finalPath.indexOf("/uploads/");
-            const pathFromUploads = index !== -1 ? finalPath?.substring(index + 1) : finalPath;
+            const pathFromUploads = index !== -1 ? finalPath.substring(index + 1) : finalPath;
 
             const placePayload = {
                 tid: parseInt(newRouteId),
-                path: pathFromUploads, // ✅ Use the determined path
+                path: pathFromUploads,
             };
 
+            console.log("🟢 placePayload", placePayload);
 
-            // 5. Send data to API
             const placeRes = await axios.post(update_img_route_banner, placePayload, {
                 headers: {
                     "Content-Type": "application/json",
@@ -189,21 +200,25 @@ function MainEditimageBanner() {
                 },
             });
 
+            console.log("🟢 placeRes:", placeRes);
+
+            // ✅ ตรวจสอบผลลัพธ์
             if (placeRes.status === 200 || placeRes.status === 201) {
-                console.log("Trip created successfully.");
                 setSnackbarMessage("✅ ข้อมูลและรูปภาพถูกบันทึกเรียบร้อยแล้ว!");
                 setSnackbarSeverity("success");
-                setSnackbarOpen(true); // 👈 ✅ เปิด Snackbar เมื่อสำเร็จ
+                setSnackbarOpen(true);
                 setImages([]);
             } else {
-                // ❌ กรณี API ตอบกลับมาแต่สถานะไม่สำเร็จ
-                setSnackbarMessage("❌ บันทึกข้อมูลไม่สำเร็จ (Status: " + placeRes.status + ")");
+                setSnackbarMessage(`❌ บันทึกข้อมูลไม่สำเร็จ (Status: ${placeRes.status})`);
                 setSnackbarSeverity("error");
-                setSnackbarOpen(true); // 👈 ✅ เปิด Snackbar เมื่อล้มเหลว
+                setSnackbarOpen(true);
             }
+
         } catch (error) {
-            console.error("Upload error:", error);
-            alert(`❌ อัปโหลดล้มเหลว: ${error.message}`);
+            console.error("❌ Upload error:", error);
+            setSnackbarMessage(`❌ อัปโหลดล้มเหลว: ${error.message}`);
+            setSnackbarSeverity("error");
+            setSnackbarOpen(true);
         } finally {
             setUploading(false);
             setProgress(0);

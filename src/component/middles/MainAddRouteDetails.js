@@ -42,6 +42,7 @@ function MainAddRouteDetails() {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("response", response?.data);
 
       setTravelses(response.data || []); // ตรวจสอบรูปแบบ data ด้วย (array?)
       console.log("✅ ดึงข้อมูลอำเภอสำเร็จ:", response.data);

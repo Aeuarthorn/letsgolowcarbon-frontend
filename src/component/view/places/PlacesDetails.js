@@ -63,14 +63,11 @@ function PlacesDetails() {
         }
     }, []);
 
-    console.log("placesDataDetail", placesDataDetail);
-
-
     const LoadDataPlaceDetail = async () => {
         setLoading(true);
 
         try {
-            const res = await axios.post(get_places_tourist_attraction_details_guest, stateDetail, {
+            const res = await axios.post(get_places_tourist_attraction_details_guest, stateDetail, { 
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,

@@ -27,11 +27,10 @@ const icon = [
 function MainRouteTraval() {
     const navigate = useNavigate();
 
-    
+
 
     const handleNavigate = (item, index) => {
-        console.log("item", item);
-
+        // console.log("item", item);
         navigate(`/place/${item.path}`, {
             state: {
                 type: 'banner_place',
@@ -66,8 +65,6 @@ function MainRouteTraval() {
                     }}
                 >
                     {icon.map((item, index) => {
-                        console.log("item", item);
-
                         return (
                             <Grid
                                 item
@@ -96,7 +93,6 @@ function MainRouteTraval() {
                                         transition: 'all 0.3s ease',
                                         '&:hover': {
                                             backgroundColor: '#006400', // เขียวเข้ม
-                                            // backgroundColor: '#e0f7fa',
                                             boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)',
                                             transform: 'scale(1.05)',
                                             color: "white",

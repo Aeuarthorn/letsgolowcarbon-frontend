@@ -169,7 +169,7 @@ function MainEditImageInfographic() {
 
                 // ✅ ดึง path ออกจาก response ที่ถูกต้อง
                 const results = uploadRes.data?.data?.results || [];
-                const paths = results.map((r) => r.file_path).filter(Boolean);
+                const paths = results.map((r) => r.file_path);
 
                 // ✅ ตรวจว่ามี path ไหม
                 if (paths.length > 0) {

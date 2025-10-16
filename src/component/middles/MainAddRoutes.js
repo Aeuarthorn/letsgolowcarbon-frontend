@@ -215,29 +215,31 @@ function MainAddRoutes() {
               "Content-Type": "multipart/form-data",
             },
           });
-          console.log("uploadRes", uploadRes);
-          if (uploadRes.status === 200) {
-            setSnackbarMessage("✅ รูปภาพถูกบันทึกเรียบร้อยแล้ว!");
-            setSnackbarSeverity("success");
-            setImages([]);
-            setSnackbarOpen(true); // <<== ต้องมี!
-            setFormData({
-              name: "",
-              language: "",
-              brandImage: "",
-              infographicImage: "",
-              ttid: "",
-            });
+          console.log("uploadRes:", uploadRes.data);
 
+          // ✅ ตรวจ 200 หรือ 201
+          if (uploadRes.status === 200 || uploadRes.status === 201) {
+            console.log("✅ Upload success for type:", type);
           } else {
-            setSnackbarMessage("❌ ไม่สามารถบันทึกข้อมูลได้");
-            setSnackbarSeverity("error");
-            setSnackbarOpen(true); // <<== ต้องมี!
-            throw new Error("Upload failed");
+            console.warn("⚠️ Upload failed for type:", type);
           }
         }
+        // ✅ แสดงข้อความสำเร็จครั้งเดียวหลังอัปโหลดครบทุกประเภท
+        setSnackbarMessage("✅ ข้อมูลและรูปภาพถูกบันทึกเรียบร้อยแล้ว!");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
+        setImages([]);
+        setFormData({
+          name: "",
+          language: "",
+          brandImage: "",
+          infographicImage: "",
+          ttid: "",
+        });
       } else {
-        throw new Error("Place creation failed");
+        setSnackbarMessage("❌ เกิดข้อผิดพลาดในการบันทึก");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       }
     } catch (err) {
       console.error("Error:", err);

@@ -25,13 +25,10 @@ function PlacesList() {
         open: false,
         message: "",
     });
-    const BASE_URL = "http://localhost:8080";
     const location = useLocation();
     const stateList = location.state;
-
-    console.log("stateList Places", stateList);
-    console.log("placesData", placesData);
-
+    // console.log("stateList Places", stateList);
+    // console.log("placesData", placesData);
 
     // กำหนดชื่อหัวข้อจาก placeType หรือ fallback เป็น สถานที่ท่องเที่ยว
     const headingLabelMap = {
@@ -94,7 +91,7 @@ function PlacesList() {
             </Typography>
 
             {placesData?.map((districtData) => {
-                console.log("districtData", districtData);
+                // console.log("districtData", districtData);
 
                 return (
                     <Box key={districtData?.slug} sx={{ mb: 6 }}>
@@ -112,7 +109,7 @@ function PlacesList() {
                             }}
                         >
                             {districtData?.places?.map((place) => {
-                                console.log("place++++++++", place);
+                                // console.log("place++++++++", place);
                                 return (
                                     <Grid
                                         item

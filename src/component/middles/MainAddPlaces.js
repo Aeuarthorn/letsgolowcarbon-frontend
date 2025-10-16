@@ -234,8 +234,9 @@ function MainAddPlaces() {
                             console.log(`📈 Progress ${type}: ${percent}%`);
                         },
                     });
+                    console.log("uploadRes", uploadRes);
 
-                    if (uploadRes.status === 200) {
+                    if (uploadRes.status === 200 || uploadRes?.status === 201) {
                         const data = uploadRes.data;
                         console.log(`✅ Upload ${type} success:`, data);
                         allUploads.push({ type, data });
