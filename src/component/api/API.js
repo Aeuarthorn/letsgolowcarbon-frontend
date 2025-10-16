@@ -1,8 +1,8 @@
 
 // DEV 
-const letsgolowcarbons = process.env.DEV;
+// const letsgolowcarbons = process.env.DEV;
 // PRODUCTION
-// const letsgolowcarbons = process.env.PRODUCTION;
+const letsgolowcarbons = process.env.PRODUCTION;
 
 // ------------------------ สำหรับ guest --------------------------- //
 // POST
