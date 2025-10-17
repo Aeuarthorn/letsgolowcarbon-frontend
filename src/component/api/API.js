@@ -11,7 +11,7 @@ export const login = `${letsgolowcarbons}/login` // POST
 export const reset_password = `${letsgolowcarbons}/reset-password` // POST
 export const media_upload = `${letsgolowcarbons}/api/v1/media/upload` // POST
 
-//GET
+//GET 
 export const district_guest = `${letsgolowcarbons}/district_guest` // GET
 export const travel_guest = `${letsgolowcarbons}/travel_guest` // POST
 export const travel_types_guest = `${letsgolowcarbons}/travel_types_guest` // GET

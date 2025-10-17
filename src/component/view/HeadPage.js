@@ -80,20 +80,7 @@ export default function HeadPage({ screenWidth, defaultTheme, isAuthenticated, }
   const [role, setRole] = useState("");
 
   const [hasToken, setHasToken] = useState(false);
-  const loadTravels = async () => {
-    setLoading(true);
-    setError(null); // ✅ Reset error state
-    try {
-      const travelTypes = await axios.get(travel_types_guest);
-      console.log("✅ ดึงข้อมูลเส้นทางสำเร็จ:++++++++++", travelTypes.data);
-      setTravelType(travelTypes?.data || []);
-    } catch (error) {
-      console.error("❌ ดึงข้อมูลอำเภอล้มเหลว:", error);
-      setError("ไม่สามารถโหลดข้อมูลได้ในขณะนี้ โปรดลองใหม่อีกครั้ง"); // ✅ Set user-friendly error message
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   // useEffect(() => {
   //   const fetchData = async () => {
@@ -213,6 +200,27 @@ export default function HeadPage({ screenWidth, defaultTheme, isAuthenticated, }
     };
   }, [i18n, resources, token]);
 
+
+  const loadTravels = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const travelTypes = await axios.get(travel_types_guest);
+      console.log("✅ ดึงข้อมูลเส้นทางสำเร็จ:++++++++++", travelTypes);
+
+      // ✅ ตรวจสอบก่อนว่าเป็น array หรือไม่
+      const data = Array.isArray(travelTypes.data)
+        ? travelTypes.data
+        : [];
+
+      setTravelType(data);
+    } catch (error) {
+      console.error("❌ ดึงข้อมูลอำเภอล้มเหลว:", error);
+      setError("ไม่สามารถโหลดข้อมูลได้ในขณะนี้ โปรดลองใหม่อีกครั้ง");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ฟังก์ชันเปิด/ปิด dropdown แต่ละเมนู
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
@@ -754,14 +762,14 @@ export default function HeadPage({ screenWidth, defaultTheme, isAuthenticated, }
                   {travelType?.map((format) => {
                     return (
                       <MenuItem
-                        key={`format-${format.ttid}`}
+                        key={`format-${format?.ttid}`}
                         sx={{ pl: 4 }}
                         onClick={() => {
-                          navigate(`/format/${format.ttid}?name=${encodeURIComponent(format.name)}`);
+                          navigate(`/format/${format?.ttid}?name=${encodeURIComponent(format?.name)}`);
                           setAnchorElBaab(null);
                         }}
                       >
-                        {format.name}
+                        {format?.name}
                       </MenuItem>
                     )
                   })}
