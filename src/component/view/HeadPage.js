@@ -365,7 +365,7 @@ export default function HeadPage({ screenWidth, defaultTheme, isAuthenticated, }
                     {t("format")}
                   </MenuItem>
                   {travelType?.map((format) => {
-                    console.log("format", format);
+                    // console.log("format", format);
 
                     return (
                       <MenuItem

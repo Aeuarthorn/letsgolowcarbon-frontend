@@ -178,113 +178,113 @@ function MainAddPlaces() {
             const decoded = jwtDecode(token);
             const uid = decoded?.uid || decoded?.user_id || null;
             // STEP 1: สร้างสถานที่ (place)
-            // const placePayload = {
-            //     ...form,
-            //     uid: parseInt(uid),
-            //     carFootprintPerDay: parseFloat(form.carFootprintPerDay),
-            // };
+            const placePayload = {
+                ...form,
+                uid: parseInt(uid),
+                carFootprintPerDay: parseFloat(form.carFootprintPerDay),
+            };
 
-            // const placeRes = await axios.post(create_places, placePayload, {
-            //     headers: {
-            //         "Content-Type": "application/json",
-            //         Authorization: `Bearer ${token}`,
-            //     },
-            // });
-            // console.log("placeRes", placeRes);
+            const placeRes = await axios.post(create_places, placePayload, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            console.log("placeRes", placeRes);
 
-            // if (placeRes.status === 200 && placeRes.data?.id) {
-            const newRouteId = 7;
-            // const newRouteId = placeRes.data?.id;
-            const types = [...new Set(images.map((img) => img.type))];
+            if (placeRes.status === 200 && placeRes.data?.id) {
+                // const newRouteId = 7;
+                const newRouteId = placeRes.data?.id;
+                const types = [...new Set(images.map((img) => img.type))];
 
-            let allUploads = []; // เก็บผลลัพธ์ทุกกลุ่ม
-            let allSuccess = true;
+                let allUploads = []; // เก็บผลลัพธ์ทุกกลุ่ม
+                let allSuccess = true;
 
-            // ✅ วนลูปแต่ละ type
-            for (const type of types) {
-                const imagesOfType = images.filter((img) => img.type === type);
-                if (imagesOfType.length === 0) continue;
+                // ✅ วนลูปแต่ละ type
+                for (const type of types) {
+                    const imagesOfType = images.filter((img) => img.type === type);
+                    if (imagesOfType.length === 0) continue;
 
-                const formDataUpload = new FormData();
+                    const formDataUpload = new FormData();
 
-                // ✅ เพิ่มรูปทั้งหมดในกลุ่มนั้น
-                imagesOfType.forEach((img) => {
-                    formDataUpload.append("files", img.file);
-                });
-
-                // ✅ เพิ่มข้อมูลอื่น ๆ
-                formDataUpload.append("media_type", "image");
-                formDataUpload.append("type", type);
-                formDataUpload.append("place_type", "place");
-                formDataUpload.append("ref_id", newRouteId);
-                formDataUpload.append("ref_name", "place");
-
-                console.log(`📤 Uploading type: ${type}, จำนวนรูป: ${imagesOfType.length}`);
-
-                try {
-                    const uploadRes = await axios.post(upload_image_all, formDataUpload, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            "Content-Type": "multipart/form-data",
-                        },
-                        onUploadProgress: (progressEvent) => {
-                            const percent = Math.round(
-                                (progressEvent.loaded * 100) / progressEvent.total
-                            );
-                            console.log(`📈 Progress ${type}: ${percent}%`);
-                        },
+                    // ✅ เพิ่มรูปทั้งหมดในกลุ่มนั้น
+                    imagesOfType.forEach((img) => {
+                        formDataUpload.append("files", img.file);
                     });
-                    console.log("uploadRes", uploadRes);
 
-                    if (uploadRes.status === 200 || uploadRes?.status === 201) {
-                        const data = uploadRes.data;
-                        console.log(`✅ Upload ${type} success:`, data);
-                        allUploads.push({ type, data });
-                    } else {
-                        console.warn(`⚠️ Upload ${type} failed:`, uploadRes.status);
+                    // ✅ เพิ่มข้อมูลอื่น ๆ
+                    formDataUpload.append("media_type", "image");
+                    formDataUpload.append("type", type);
+                    formDataUpload.append("place_type", "place");
+                    formDataUpload.append("ref_id", newRouteId);
+                    formDataUpload.append("ref_name", "place");
+
+                    console.log(`📤 Uploading type: ${type}, จำนวนรูป: ${imagesOfType.length}`);
+
+                    try {
+                        const uploadRes = await axios.post(upload_image_all, formDataUpload, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "multipart/form-data",
+                            },
+                            onUploadProgress: (progressEvent) => {
+                                const percent = Math.round(
+                                    (progressEvent.loaded * 100) / progressEvent.total
+                                );
+                                console.log(`📈 Progress ${type}: ${percent}%`);
+                            },
+                        });
+                        console.log("uploadRes", uploadRes);
+
+                        if (uploadRes.status === 200 || uploadRes?.status === 201) {
+                            const data = uploadRes.data;
+                            console.log(`✅ Upload ${type} success:`, data);
+                            allUploads.push({ type, data });
+                        } else {
+                            console.warn(`⚠️ Upload ${type} failed:`, uploadRes.status);
+                            allSuccess = false;
+                        }
+                    } catch (uploadError) {
+                        console.error(`❌ Error uploading ${type}:`, uploadError);
                         allSuccess = false;
                     }
-                } catch (uploadError) {
-                    console.error(`❌ Error uploading ${type}:`, uploadError);
-                    allSuccess = false;
                 }
-            }
 
-            // ✅ เมื่ออัปโหลดครบทุกประเภท
-            if (allSuccess && allUploads.length > 0) {
-                setSnackbarMessage("✅ อัปโหลดรูปภาพทั้งหมดสำเร็จ!");
-                setSnackbarSeverity("success");
+                // ✅ เมื่ออัปโหลดครบทุกประเภท
+                if (allSuccess && allUploads.length > 0) {
+                    setSnackbarMessage("✅ อัปโหลดรูปภาพทั้งหมดสำเร็จ!");
+                    setSnackbarSeverity("success");
 
-                // เคลียร์ค่า
-                setImages([]);
-                setForm({
-                    attractionName: "",
-                    language: "th",
-                    historyDescription: "",
-                    activities: "",
-                    cost: "",
-                    touristCapacity: "",
-                    openingHours: "",
-                    touristSeason: "",
-                    electricityUsage: "",
-                    waterUsage: "",
-                    fuelUsage: "",
-                    wastewaterManagement: "",
-                    wasteManagement: "",
-                    carFootprintPerDay: "",
-                    ecoSystemChange: "",
-                    contactInfo: "",
-                    locationDescription: "",
-                    googleMapCoordinates: "",
-                    notes: "",
-                });
+                    // เคลียร์ค่า
+                    setImages([]);
+                    setForm({
+                        attractionName: "",
+                        language: "th",
+                        historyDescription: "",
+                        activities: "",
+                        cost: "",
+                        touristCapacity: "",
+                        openingHours: "",
+                        touristSeason: "",
+                        electricityUsage: "",
+                        waterUsage: "",
+                        fuelUsage: "",
+                        wastewaterManagement: "",
+                        wasteManagement: "",
+                        carFootprintPerDay: "",
+                        ecoSystemChange: "",
+                        contactInfo: "",
+                        locationDescription: "",
+                        googleMapCoordinates: "",
+                        notes: "",
+                    });
+                } else {
+                    setSnackbarMessage("⚠️ บางรูปอัปโหลดไม่สำเร็จ");
+                    setSnackbarSeverity("warning");
+                }
             } else {
-                setSnackbarMessage("⚠️ บางรูปอัปโหลดไม่สำเร็จ");
-                setSnackbarSeverity("warning");
+                throw new Error("Place creation failed");
             }
-            // } else {
-            //     throw new Error("Place creation failed");
-            // }
         } catch (error) {
             console.error("❗ Error ส่งข้อมูล:", error);
             setSnackbarMessage("⚠️ เกิดข้อผิดพลาดขณะส่งข้อมูล");
@@ -300,7 +300,7 @@ function MainAddPlaces() {
         tourist_attraction: "สถานที่ท่องเที่ยว",
         hotel: "ที่พัก",
         restaurant: "ร้านอาหาร",
-        souvenir: "ร้านของที่ระลึก",
+        gift_shop: "ร้านของที่ระลึก",
         community_product: "ผลิตภัณฑ์ชุมชน",
     };
     // ลบรูปภาพ

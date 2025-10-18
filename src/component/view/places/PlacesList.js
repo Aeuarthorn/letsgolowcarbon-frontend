@@ -181,7 +181,7 @@ function PlacesList() {
                                                             state: {
                                                                 pid: place.id,
                                                                 type: "img_detail_place",
-                                                                placeType: "tourist_attraction",
+                                                                placeType: `${place?.placeType}`,
                                                                 refName: "place",
                                                             },
                                                         })

@@ -252,7 +252,7 @@ function AdminSideBar({ selected, onSelect }) {
                                             <ListItemIcon><Restaurant sx={{ color: "white" }} /></ListItemIcon>
                                             <ListItemText primary="เพิ่มร้านอาหาร" />
                                         </ListItem>
-                                        <ListItem button onClick={() => onSelect("souvenir")}>
+                                        <ListItem button onClick={() => onSelect("gift_shop")}>
                                             <ListItemIcon><ShoppingBag sx={{ color: "white" }} /></ListItemIcon>
                                             <ListItemText primary="เพิ่มร้านของที่ระลึก" />
                                         </ListItem>

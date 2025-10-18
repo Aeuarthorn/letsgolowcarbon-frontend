@@ -173,14 +173,6 @@ function MainEditimageBanner() {
             }
             console.log("uploadedPaths0]", uploadedPaths);
 
-            // ✅ ตรวจว่ามีไฟล์อัปโหลดสำเร็จไหม
-            if (uploadedPaths.length === 0) {
-                setSnackbarMessage("❌ ไม่มีไฟล์ใดถูกอัปโหลดสำเร็จ");
-                setSnackbarSeverity("error");
-                setSnackbarOpen(true);
-                return;
-            }
-
             // ✅ เอา path ล่าสุดไปอัปเดต banner
             const finalPath = uploadedPaths[uploadedPaths.length - 1];
             const index = finalPath.indexOf("/uploads/");

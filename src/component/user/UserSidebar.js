@@ -20,7 +20,7 @@ const menuItems = [
     { key: "tourist", label: "เพิ่มสถานที่ท่องเที่ยว", icon: <Place /> },
     { key: "homestay", label: "เพิ่มที่พัก", icon: <Hotel /> },
     { key: "food", label: "เพิ่มร้านอาหาร", icon: <Restaurant /> },
-    { key: "souvenir", label: "เพิ่มร้านของที่ระลึก", icon: <ShoppingBag /> },
+    { key: "gift_shop", label: "เพิ่มร้านของที่ระลึก", icon: <ShoppingBag /> },
     { key: "community", label: "เพิ่มผลิตภัณฑ์ชุมชน", icon: <LocalOffer /> },
 ];
 

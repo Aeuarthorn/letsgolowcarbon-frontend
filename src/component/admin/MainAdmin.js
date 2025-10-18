@@ -37,8 +37,8 @@ function MainAdmin({ screenWidth, defaultTheme }) {
       case "restaurant":
         navigate("/admin/add/place/restaurant");
         break;
-      case "souvenir":
-        navigate("/admin/add/place/souvenir");
+      case "gift_shop":
+        navigate("/admin/add/place/gift_shop");
         break;
       case "communityProduct":
         navigate("/admin/add/place/community_product");
